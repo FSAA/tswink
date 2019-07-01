@@ -45,19 +45,19 @@ class TypeSimplifier
         $this->type = $column->getType();
 
         if($this->isTypeString()) {
-            return "''";
+            return "string";
         }
         if($this->isTypeAny()) {
             return "any";
         }
         if($this->isTypeNumber()) {
-            return "0";
+            return "number";
         }
         if($this->isTypeDecimal()) {
-            return "0.0";
+            return "number";
         }
         if($this->isBooleanDecimal()) {
-            return "false";
+            return "boolean";
         }
 
         throw new UnknownTypeException("Unknown type: {$this->type->getName()}");
