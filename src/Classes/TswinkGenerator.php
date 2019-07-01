@@ -54,9 +54,18 @@ Class TswinkGenerator extends Generator
     {
         $tsClass = "export interface {$this->getTableNameForClassFile()} {\n";
         foreach ($this->table->getColumns() as $column) {
-            $tsClass .= "\t{$column->getName()}: {$this->getSimplifiedType($column)};\n";
+            $name = TswinkGenerator::escapeName($column->getName());
+            $tsClass .= "\t{$name}: {$this->getSimplifiedType($column)};\n";
         }
         return $tsClass . "}\n";
+    }
+
+    private static function escapeName($name){
+        if(strpos($name, "-") !== false){
+            return "'$name'";
+        }
+
+        return $name;
     }
 
     private function getTableNameForClassFile()
