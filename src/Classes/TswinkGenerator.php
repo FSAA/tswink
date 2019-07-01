@@ -52,7 +52,7 @@ Class TswinkGenerator extends Generator
 
     private function getClassContent()
     {
-        $tsClass = "export interface {$this->getTableNameForClassFile()} {\n";
+        $tsClass = "export default interface {$this->getTableNameForClassFile()} {\n";
         foreach ($this->table->getColumns() as $column) {
             $name = TswinkGenerator::escapeName($column->getName());
             $tsClass .= "\t{$name}: {$this->getSimplifiedType($column)};\n";
