@@ -1,5 +1,5 @@
 {
-    "name": "phishops/tswink",
+    "name": "pangpondpon/tswink",
     "description": "Generate typescript classes from Laravel models.",
     "license": "MIT",
     "type": "library",
