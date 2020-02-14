@@ -12,5 +12,8 @@ return [
     'ts_indentation_number_of_spaces' => 4,
 
     // Array of paths to the models (so you could include vendors models too). Paths need to be relative to the laravel install root folder
-    'models_paths' => []
+    'models_paths' => [],
+
+    // Will skip the generation of the TS file if the corresponding php model file can't be found.
+    'skip_missing_models' => false,
 ];

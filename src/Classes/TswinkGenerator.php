@@ -35,6 +35,9 @@ Class TswinkGenerator extends Generator
     /** @var string */
     private $indentation;
 
+    /** @var bool */
+    private $skipMissingModels;
+
     public function __construct()
     {
         parent::__construct();
@@ -47,6 +50,7 @@ Class TswinkGenerator extends Generator
             $this->testForOptionalProperties = config('tswink.ts_test_for_optional_properties');
             $this->classesByTable = $this->getModels();
             $this->indentation = config('tswink.ts_spaces_instead_of_tabs') ? str_repeat(' ', config('tswink.ts_indentation_number_of_spaces')) : "\t";
+            $this->skipMissingModels = config('tswink.skip_missing_models') ? true : false;
         }
     }
 
@@ -61,7 +65,10 @@ Class TswinkGenerator extends Generator
 
     private function processTable()
     {
-        $this->writeFile($this->fileName() . ".ts", $this->getClassContent());
+        $classContent = $this->getClassContent();
+        if ($classContent !== null) {
+            $this->writeFile($this->fileName() . ".ts", $classContent);
+        }
     }
 
     private function fileName()
@@ -76,6 +83,7 @@ Class TswinkGenerator extends Generator
 
     private function getClassContent()
     {
+        $content = null;
         // Get the Model for the selected table
         $model = null;
         $hidden = [];
@@ -85,49 +93,52 @@ Class TswinkGenerator extends Generator
             $hidden = $model->getHidden();
         }
 
-        // Generate the interface
-        $tsClass = "export default interface {$this->getTableNameForClassFile()} {\n";
-        foreach ($this->table->getColumns() as $column) {
-            if (!$hidden || !in_array($column->getName(), $hidden)) {
-                $name = TswinkGenerator::escapeName($column->getName());
-                $type = $this->getSimplifiedType($column);
-                if ($this->allPropertiesNullable && $type !== 'any') {
-                    $type .= ' | null';
+        if ($model || !$this->skipMissingModels) {
+            // Generate the interface
+            $tsClass = "export default interface {$this->getTableNameForClassFile()} {\n";
+            foreach ($this->table->getColumns() as $column) {
+                if (!$hidden || !in_array($column->getName(), $hidden)) {
+                    $name = TswinkGenerator::escapeName($column->getName());
+                    $type = $this->getSimplifiedType($column);
+                    if ($this->allPropertiesNullable && $type !== 'any') {
+                        $type .= ' | null';
+                    }
+                    $optionalProperty = (!$this->testForOptionalProperties || $column->getNotnull()) ? '' : '?';
+                    $tsClass .= $this->indentation . "{$name}{$optionalProperty}: {$type};\n";
                 }
-                $optionalProperty = (!$this->testForOptionalProperties || $column->getNotnull()) ? '' : '?';
-                $tsClass .= $this->indentation . "{$name}{$optionalProperty}: {$type};\n";
             }
-        }
 
-        // Take care of the relations
-        $imports = '';
-        $imported = [];
-        if ($model && count($model->getModelRelations()) > 0) {
-            $tsClass .= "\n\n";
-            foreach ($model->getModelRelations() as $relation) {
-                if (!$hidden || !in_array($relation['relationName'], $hidden)) {
-                    $targetModelName = substr($relation['targetClass'], strrpos($relation['targetClass'], '\\') + 1);
-                    if ($relation['targetClass'] !== $this->classesByTable[$this->table->getName()]) {
-                        $targetFileName = $this->getTableFileName(array_search($relation['targetClass'], $this->classesByTable));
-                        if (!in_array($targetModelName, $imported)) {
-                            $imported[] = $targetModelName;
-                            $imports .= "import {$targetModelName} from './{$targetFileName}';\n";
+            // Take care of the relations
+            $imports = '';
+            $imported = [];
+            if ($model && count($model->getModelRelations()) > 0) {
+                $tsClass .= "\n\n";
+                foreach ($model->getModelRelations() as $relation) {
+                    if (!$hidden || !in_array($relation['relationName'], $hidden)) {
+                        $targetModelName = substr($relation['targetClass'], strrpos($relation['targetClass'], '\\') + 1);
+                        if ($relation['targetClass'] !== $this->classesByTable[$this->table->getName()]) {
+                            $targetFileName = $this->getTableFileName(array_search($relation['targetClass'], $this->classesByTable));
+                            if (!in_array($targetModelName, $imported)) {
+                                $imported[] = $targetModelName;
+                                $imports .= "import {$targetModelName} from './{$targetFileName}';\n";
+                            }
+                        }
+                        $isCollection = $relation['relationType'] === HasMany::class || $relation['relationType'] === BelongsToMany::class;
+                        if ($isCollection) {
+                            $tsClass .= $this->indentation . "{$relation['relationName']}?: {$targetModelName}[] | { [key: string]: $targetModelName };\n";
+                        } else {
+                            $tsClass .= $this->indentation . "{$relation['relationName']}?: {$targetModelName} | null;\n";
                         }
                     }
-                    $isCollection = $relation['relationType'] === HasMany::class || $relation['relationType'] === BelongsToMany::class;
-                    if ($isCollection) {
-                        $tsClass .= $this->indentation . "{$relation['relationName']}?: {$targetModelName}[] | { [key: string]: $targetModelName };\n";
-                    } else {
-                        $tsClass .= $this->indentation . "{$relation['relationName']}?: {$targetModelName} | null;\n";
-                    }
+                }
+
+                foreach ($model->getAppends() as $append) {
+                    $tsClass .= $this->indentation . "{$append}?: any;\n";
                 }
             }
-
-            foreach ($model->getAppends() as $append) {
-                $tsClass .= $this->indentation . "{$append}?: any;\n";
-            }
+            $content = $imports . "\n" . $tsClass . "}\n";
         }
-        return $imports . "\n" . $tsClass . "}\n";
+        return $content;
     }
 
     private static function escapeName($name){
