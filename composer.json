@@ -5,9 +5,9 @@
     "type": "library",
     "require": {
         "php": ">=7.1",
-        "illuminate/support": "5.*",
+        "illuminate/support": "^5.0||^6.0",
         "doctrine/dbal": "^2.7@dev",
-        "phpunit/phpunit": ">=7.0"
+        "phpunit/phpunit": "^7.0||^8.0"
     },
     "author": {
         "name": "Patompong Savaengsuk ",
