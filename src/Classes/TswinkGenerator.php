@@ -11,6 +11,7 @@ use Doctrine\DBAL\Types\StringType;
 use File;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 Class TswinkGenerator extends Generator
 {
@@ -123,11 +124,13 @@ Class TswinkGenerator extends Generator
                                 $imports .= "import {$targetModelName} from './{$targetFileName}';\n";
                             }
                         }
+
+                        $relationNameSnakeCase = Str::snake($relation['relationName']);
                         $isCollection = $relation['relationType'] === HasMany::class || $relation['relationType'] === BelongsToMany::class;
                         if ($isCollection) {
-                            $tsClass .= $this->indentation . "{$relation['relationName']}?: {$targetModelName}[] | { [key: string]: $targetModelName };\n";
+                            $tsClass .= $this->indentation . "{$relationNameSnakeCase}?: {$targetModelName}[] | { [key: string]: $targetModelName };\n";
                         } else {
-                            $tsClass .= $this->indentation . "{$relation['relationName']}?: {$targetModelName} | null;\n";
+                            $tsClass .= $this->indentation . "{$relationNameSnakeCase}?: {$targetModelName} | null;\n";
                         }
                     }
                 }
