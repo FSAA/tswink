@@ -79,7 +79,7 @@ Class TswinkGenerator extends Generator
 
     private function getTableFileName($tableName)
     {
-        return str_singular(kebab_case(camel_case($tableName)));
+        return kebab_case(str_singular(camel_case($tableName)));
     }
 
     private function getClassContent()
