@@ -8,9 +8,6 @@ class TypeExpression extends Expression
     public $name;
 
     /** @var bool */
-    public $is_primitive;
-
-    /** @var bool */
     public $is_collection;
 
     public function isPrimitive()

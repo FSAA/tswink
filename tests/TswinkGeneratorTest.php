@@ -19,10 +19,10 @@ class TswinkGeneratorTest extends TestCase
     {
         $connectionParams = [];
         $connectionParams['driver'] = "pdo_pgsql";
-        $connectionParams['host'] = "132.203.235.196";
-        $connectionParams['dbname'] = "simulovins-oli";
-        $connectionParams['user'] = "olrob13";
-        $connectionParams['password'] = "4v7as220g";
+        $connectionParams['host'] = //Database host here;
+        $connectionParams['dbname'] = //Database name here;
+        $connectionParams['user'] = //Username here;
+        $connectionParams['password'] = //Password here;
         self::$dbConnection = DriverManager::getConnection($connectionParams, new Configuration);
     }
 
