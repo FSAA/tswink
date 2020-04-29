@@ -3,7 +3,6 @@
 
 namespace TsWink\Classes;
 
-
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Types\ArrayType;
 use Doctrine\DBAL\Types\BigIntType;
@@ -35,12 +34,12 @@ use Doctrine\DBAL\Types\VarDateTimeImmutableType;
 use Doctrine\DBAL\Types\VarDateTimeType;
 use TsWink\Exceptions\UnknownTypeException;
 
-class TypeSimplifier
+class TypeConverter
 {
     /** @var Type */
     private $type;
 
-    public function simplify(Column $column)
+    public function convert(Column $column)
     {
         $this->type = $column->getType();
 
@@ -56,8 +55,11 @@ class TypeSimplifier
         if($this->isTypeDecimal()) {
             return "number";
         }
-        if($this->isBooleanDecimal()) {
+        if($this->isTypeBoolean()) {
             return "boolean";
+        }
+        if($this->isTypeDateTime()) {
+            return "Date";
         }
 
         throw new UnknownTypeException("Unknown type: {$this->type->getName()}");
@@ -75,21 +77,10 @@ class TypeSimplifier
     private function isTypeAny()
     {
         return $this->type instanceof ArrayType
-            || $this->type instanceof DateImmutableType
-            || $this->type instanceof DateIntervalType
-            || $this->type instanceof DateTimeImmutableType
-            || $this->type instanceof DateTimeType
-            || $this->type instanceof DateTimeTzImmutableType
-            || $this->type instanceof DateTimeTzType
-            || $this->type instanceof DateType
             || $this->type instanceof JsonArrayType
             || $this->type instanceof JsonType
             || $this->type instanceof ObjectType
-            || $this->type instanceof SimpleArrayType
-            || $this->type instanceof TimeImmutableType
-            || $this->type instanceof TimeType
-            || $this->type instanceof VarDateTimeImmutableType
-            || $this->type instanceof VarDateTimeType;
+            || $this->type instanceof SimpleArrayType;
     }
 
     private function isTypeNumber()
@@ -105,8 +96,23 @@ class TypeSimplifier
             || $this->type instanceof FloatType;
     }
 
-    private function isBooleanDecimal()
+    private function isTypeBoolean()
     {
         return $this->type instanceof BooleanType ;
+    }
+
+    private function isTypeDateTime()
+    {
+        return $this->type instanceof DateImmutableType
+            || $this->type instanceof DateIntervalType
+            || $this->type instanceof DateTimeImmutableType
+            || $this->type instanceof DateTimeType
+            || $this->type instanceof DateTimeTzImmutableType
+            || $this->type instanceof DateTimeTzType
+            || $this->type instanceof DateType
+            || $this->type instanceof TimeImmutableType
+            || $this->type instanceof TimeType
+            || $this->type instanceof VarDateTimeImmutableType
+            || $this->type instanceof VarDateTimeType;
     }
 }
