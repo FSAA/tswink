@@ -8,6 +8,8 @@ class TestClass extends Model
 {
     protected $table = 'events';
 
+    const TEST_CONST = 45;
+
     /** @var array */
     protected $modelRelations = [
         [

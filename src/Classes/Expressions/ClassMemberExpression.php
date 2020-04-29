@@ -7,6 +7,9 @@ class ClassMemberExpression extends Expression
     /** @var string */
     public $name;
 
+    /** @var string */
+    public $access_modifiers;
+
     /** @var int */
     public $initial_value;
 
@@ -23,6 +26,9 @@ class ClassMemberExpression extends Expression
         if (count($matches) > 1) {
             $classMember->name = $matches[1];
             $classMember->initial_value = $matches[2];
+            $classMember->access_modifiers = "const";
+            $classMember->type = new TypeExpression();
+            $classMember->type->name = "number";
             $result = $classMember;
             return true;
         }
@@ -45,11 +51,18 @@ class ClassMemberExpression extends Expression
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
-        $content = "public " . $this->name . "?: ";
+        $content = "public ";
+        if ($this->access_modifiers == "const") {
+            $content .= "static readonly ";
+        }
+        $content .= $this->name . "?: ";
         if ($this->type) {
             $content .= $this->type->toTypeScript($options);
         } else {
             $content .= "any";
+        }
+        if ($this->initial_value != null) {
+            $content .= " = " . $this->initial_value;
         }
         return $content;
     }

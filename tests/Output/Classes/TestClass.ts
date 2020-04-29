@@ -6,6 +6,7 @@ import TestImport from "./TestImport"
 
 export default class TestClass {
 
+    public static readonly TEST_CONST?: number = 45;
     public birth_amount?: number;
     public breeding_event_id?: number;
     public breeding_projection_chart_week?: number;

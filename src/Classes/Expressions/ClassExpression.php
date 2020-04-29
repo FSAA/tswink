@@ -137,7 +137,11 @@ class ClassExpression extends Expression
         $classBody .= $this->indent(trim($constructorContent, "\n"), 1, $options) . "\n";
         $classBody .= "}\n\n";
         $classBody .= "// <non-auto-generated-class-declarations>\n";
-        $classBody .= $this->indent($this->non_auto_generated_class_declarations, -1, $options) . "\n";
+        if ($this->non_auto_generated_class_declarations) {
+            $classBody .= $this->indent($this->non_auto_generated_class_declarations, -1, $options) . "\n";
+        } else {
+            $classBody .= "\n";
+        }
         $classBody .= "// </non-auto-generated-class-declarations>";
         $content .= $this->indent($classBody, 1, $options) . "\n";
         $content .= "}";
