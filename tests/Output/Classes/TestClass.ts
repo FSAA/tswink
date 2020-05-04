@@ -1,12 +1,13 @@
 import EventType from "./EventType"
 import Introduction from "./Introduction"
 // <non-auto-generated-import-declarations>
+
 import TestImport from "./TestImport"
 // </non-auto-generated-import-declarations>
 
 export default class TestClass {
 
-    public static readonly TEST_CONST?: number = 45;
+    public static readonly TEST_CONST: number = 45;
     public birth_amount?: number;
     public breeding_event_id?: number;
     public breeding_projection_chart_week?: number;
@@ -43,7 +44,10 @@ export default class TestClass {
     
     // <non-auto-generated-class-declarations>
     public testAttribute: any;
+    
     public testFunction(): any {
+    
+    
     
     }
     // </non-auto-generated-class-declarations>

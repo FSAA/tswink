@@ -114,7 +114,9 @@ class ClassExpression extends Expression
         $content .= "export default class {$this->name} {\n\n";
         $classBody = null;
 
-        usort($this->members, fn ($a, $b) => strcmp($a->name, $b->name));
+        usort($this->members, function ($a, $b) { 
+            return strcmp($a->name, $b->name);
+        });
         foreach ($this->members as $member) {
             if (!$member->no_convert) {
                 $classBody .= $member->toTypeScript($options) . ";\n";

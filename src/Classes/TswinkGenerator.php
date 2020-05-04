@@ -67,7 +67,9 @@ class TswinkGenerator
         if (!$class->hasMember("table") || !is_array($this->tables)) {
             return;
         }
-        $table = current(array_filter($this->tables, fn ($t) => ($t->getName() == $class->members["table"]->initial_value)));
+        $table = current(array_filter($this->tables, function  ($t) use ($class) { 
+            return $t->getName() == $class->members["table"]->initial_value;
+        }));
         if ($table === FALSE) {
             return;
         }

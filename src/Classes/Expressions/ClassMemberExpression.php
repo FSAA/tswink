@@ -55,7 +55,11 @@ class ClassMemberExpression extends Expression
         if ($this->access_modifiers == "const") {
             $content .= "static readonly ";
         }
-        $content .= $this->name . "?: ";
+        $content .= $this->name;
+        if ($this->access_modifiers != "const") {
+            $content .=  "?";
+        }
+        $content .= ": ";
         if ($this->type) {
             $content .= $this->type->toTypeScript($options);
         } else {
