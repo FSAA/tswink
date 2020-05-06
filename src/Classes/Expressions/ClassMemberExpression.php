@@ -2,6 +2,8 @@
 
 namespace TsWink\Classes\Expressions;
 
+use Illuminate\Support\Str;
+
 class ClassMemberExpression extends Expression
 {
     /** @var string */
@@ -42,7 +44,7 @@ class ClassMemberExpression extends Expression
         }
         preg_match('/function get([a-zA-Z0-9_]*)Attribute/', $text, $matches);
         if (count($matches) > 0) {
-            $classMember->name = camel_case($matches[1]);
+            $classMember->name = Str::camel($matches[1]);
             $result = $classMember;
             return true;
         }

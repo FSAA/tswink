@@ -15,7 +15,8 @@
     },
     "autoload": {
         "psr-4": {
-            "TsWink\\": "src/"
+            "TsWink\\": "src/",
+            "TsWinkTests\\": "tests/"
         }
     },
     "extra": {
