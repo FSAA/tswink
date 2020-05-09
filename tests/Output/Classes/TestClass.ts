@@ -22,7 +22,7 @@ export default class TestClass {
     public female_inventory_order?: number;
     public female_type_id?: number;
     public id?: number;
-    public introductions?: Introduction[] | { [key: string]: Introduction };
+    public introductions?: Introduction[];
     public inventory_change?: number;
     public parent_event_id?: number;
     public reproduction_sold_amount?: number;
@@ -33,13 +33,13 @@ export default class TestClass {
     
     constructor(init?: Partial<TestClass>) {
         Object.assign(this, init);
-        init.created_at = init?.created_at ? new Date(init.created_at) : undefined;
-        init.deleted_at = init?.deleted_at ? new Date(init.deleted_at) : undefined;
-        init.end_date = init?.end_date ? new Date(init.end_date) : undefined;
-        init.event_type = init?.event_type ? new EventType(init.event_type) : undefined;
-        init.introductions = init?.introductions ? Object.deserialize<Introduction>(init.introductions, Introduction) : undefined;
-        init.start_date = init?.start_date ? new Date(init.start_date) : undefined;
-        init.updated_at = init?.updated_at ? new Date(init.updated_at) : undefined;
+        this.created_at = init?.created_at ? new Date(init.created_at) : undefined;
+        this.deleted_at = init?.deleted_at ? new Date(init.deleted_at) : undefined;
+        this.end_date = init?.end_date ? new Date(init.end_date) : undefined;
+        this.event_type = init?.event_type ? new EventType(init.event_type) : undefined;
+        this.introductions = init?.introductions ? init.introductions.map(v => new Introduction(v)) : undefined;
+        this.start_date = init?.start_date ? new Date(init.start_date) : undefined;
+        this.updated_at = init?.updated_at ? new Date(init.updated_at) : undefined;
     }
     
     // <non-auto-generated-class-declarations>

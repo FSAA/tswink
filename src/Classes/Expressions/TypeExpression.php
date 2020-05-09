@@ -18,7 +18,7 @@ class TypeExpression extends Expression
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
         if ($this->is_collection) {
-            return $this->name . "[] | { [key: string]: $this->name }";
+            return $this->name . "[]";
         } else {
             return $this->name;
         }

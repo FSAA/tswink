@@ -11,13 +11,13 @@ class EloquentRelation
     public $type;
 
     /** @var string */
-    public $target_class;
+    public $target_class_name;
 
     public static function parse($relation): EloquentRelation
     {
         $eloquentRelation = new EloquentRelation();
         $eloquentRelation->name = $relation['relationName'];
-        $eloquentRelation->target_class = substr($relation['targetClass'], strrpos($relation['targetClass'], '\\') + 1);;
+        $eloquentRelation->target_class_name = substr($relation['targetClass'], strrpos($relation['targetClass'], '\\') + 1);;
         $eloquentRelation->type = $relation['relationType'];
         return $eloquentRelation;
     }

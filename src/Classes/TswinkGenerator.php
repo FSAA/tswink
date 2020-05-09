@@ -84,12 +84,14 @@ class TswinkGenerator
             $classMember = new ClassMemberExpression();
             $classMember->name = Str::snake($relation->name);
             $classMember->type = new TypeExpression();
-            $classMember->type->name = $relation->target_class;
+            $classMember->type->name = $relation->target_class_name;
             $classMember->type->is_collection = $relation->type === HasMany::class || $relation->type === BelongsToMany::class;
-            $tsImport = new ImportExpression();
-            $tsImport->name = $relation->target_class;
-            $tsImport->target = "./" . $relation->target_class;
-            $class->imports[$tsImport->name] = $tsImport;
+            if ($relation->target_class_name != $class->name) {
+                $tsImport = new ImportExpression();
+                $tsImport->name = $relation->target_class_name;
+                $tsImport->target = "./" . $relation->target_class_name;
+                $class->imports[$tsImport->name] = $tsImport;
+            }
             $class->members[$classMember->name] = $classMember;
         }
     }

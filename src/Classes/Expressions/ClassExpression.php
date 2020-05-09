@@ -130,9 +130,9 @@ class ClassExpression extends Expression
             if ($member->type == null || $member->no_convert) {
                 continue;
             } else if ($member->type->is_collection) {
-                $constructorContent .= "init." . $member->name . " = init?." . $member->name . " ? Object.deserialize<" . $member->type->name . ">(init." . $member->name . ", " . $member->type->name . ") : undefined;\n";
+                $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? init." . $member->name . ".map(v => new " . $member->type->name . "(v)) : undefined;\n";
             } else if (!$member->type->isPrimitive()) {
-                $constructorContent .= "init." . $member->name . " = init?." . $member->name . " ? new " . $member->type->name . "(init." . $member->name . ") : undefined;\n";
+                $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? new " . $member->type->name . "(init." . $member->name . ") : undefined;\n";
             }
         }
 
