@@ -43,22 +43,17 @@ class TypeConverter
     {
         $this->type = $column->getType();
 
-        if($this->isTypeString()) {
+        if ($this->isTypeString()) {
             return "string";
-        }
-        if($this->isTypeAny()) {
+        } elseif ($this->isTypeAny()) {
             return "any";
-        }
-        if($this->isTypeNumber()) {
+        } elseif ($this->isTypeNumber()) {
             return "number";
-        }
-        if($this->isTypeDecimal()) {
+        } elseif ($this->isTypeDecimal()) {
             return "number";
-        }
-        if($this->isTypeBoolean()) {
+        } elseif ($this->isTypeBoolean()) {
             return "boolean";
-        }
-        if($this->isTypeDateTime()) {
+        } elseif ($this->isTypeDateTime()) {
             return "Date";
         }
 
@@ -98,7 +93,7 @@ class TypeConverter
 
     private function isTypeBoolean()
     {
-        return $this->type instanceof BooleanType ;
+        return $this->type instanceof BooleanType;
     }
 
     private function isTypeDateTime()

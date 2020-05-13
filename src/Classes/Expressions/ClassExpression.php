@@ -114,7 +114,7 @@ class ClassExpression extends Expression
         $content .= "export default class {$this->name} {\n\n";
         $classBody = null;
 
-        usort($this->members, function ($a, $b) { 
+        usort($this->members, function ($a, $b) {
             return strcmp($a->name, $b->name);
         });
         foreach ($this->members as $member) {
@@ -129,9 +129,9 @@ class ClassExpression extends Expression
         foreach ($this->members as $member) {
             if ($member->type == null || $member->no_convert) {
                 continue;
-            } else if ($member->type->is_collection) {
+            } elseif ($member->type->is_collection) {
                 $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? init." . $member->name . ".map(v => new " . $member->type->name . "(v)) : undefined;\n";
-            } else if (!$member->type->isPrimitive()) {
+            } elseif (!$member->type->isPrimitive()) {
                 $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? new " . $member->type->name . "(init." . $member->name . ") : undefined;\n";
             }
         }

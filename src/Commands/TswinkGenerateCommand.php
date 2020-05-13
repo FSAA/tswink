@@ -4,7 +4,7 @@ namespace TsWink\Commands;
 
 use Illuminate\Console\Command;
 use TsWink\Classes\TswinkGenerator;
-use TsWink\Classes\Expressions\ExpressionStringGenerationOptions;;
+use TsWink\Classes\Expressions\ExpressionStringGenerationOptions;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Configuration;
 

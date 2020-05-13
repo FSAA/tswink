@@ -2,8 +2,7 @@
 
 namespace TsWink\Classes\Expressions;
 
-use TsWink\Classes\Expressions\ExpressionStringGenerationOptions;;
-
+use TsWink\Classes\Expressions\ExpressionStringGenerationOptions;
 use TsWink\Classes\Utils\StringUtils;
 
 abstract class Expression
@@ -22,5 +21,5 @@ abstract class Expression
         return StringUtils::indent($text, $indentLevel, $this->getIndentExpression($options));
     }
 
-    public abstract function toTypeScript(ExpressionStringGenerationOptions $options);
+    abstract public function toTypeScript(ExpressionStringGenerationOptions $options);
 }

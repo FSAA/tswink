@@ -31,7 +31,7 @@ class TswinkGeneratorTest extends TestCase
      */
     public function it_can_generate_typescript_classes()
     {
-        $sources = (array(__DIR__."/Input"));
+        $sources = ([__DIR__."/Input"]);
         $classesDestination = (__DIR__."/Output/Classes");
         $enumsDestination = (__DIR__."/Output/Enums");
 

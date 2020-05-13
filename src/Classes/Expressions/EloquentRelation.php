@@ -17,7 +17,7 @@ class EloquentRelation
     {
         $eloquentRelation = new EloquentRelation();
         $eloquentRelation->name = $relation['relationName'];
-        $eloquentRelation->target_class_name = substr($relation['targetClass'], strrpos($relation['targetClass'], '\\') + 1);;
+        $eloquentRelation->target_class_name = substr($relation['targetClass'], strrpos($relation['targetClass'], '\\') + 1);
         $eloquentRelation->type = $relation['relationType'];
         return $eloquentRelation;
     }

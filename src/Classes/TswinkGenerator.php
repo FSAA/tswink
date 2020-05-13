@@ -13,7 +13,7 @@ use TsWink\Classes\Expressions\ClassExpression;
 use TsWink\Classes\Expressions\ClassMemberExpression;
 use TsWink\Classes\Expressions\ImportExpression;
 use TsWink\Classes\Expressions\TypeExpression;
-use TsWink\Classes\Expressions\ExpressionStringGenerationOptions;;
+use TsWink\Classes\Expressions\ExpressionStringGenerationOptions;
 use TsWink\Classes\Utils\StringUtils;
 
 class TswinkGenerator
@@ -67,10 +67,10 @@ class TswinkGenerator
         if (!$class->hasMember("table") || !is_array($this->tables)) {
             return;
         }
-        $table = current(array_filter($this->tables, function  ($t) use ($class) { 
+        $table = current(array_filter($this->tables, function ($t) use ($class) {
             return $t->getName() == $class->members["table"]->initial_value;
         }));
-        if ($table === FALSE) {
+        if ($table === false) {
             return;
         }
         foreach ($table->getColumns() as $column) {
