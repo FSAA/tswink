@@ -15,7 +15,7 @@ class ClassMemberExpression extends Expression
     /** @var int */
     public $initial_value;
 
-    /** @var string */
+    /** @var TypeExpression */
     public $type;
 
     /** @var bool */
@@ -58,7 +58,7 @@ class ClassMemberExpression extends Expression
             $content .= "static readonly ";
         }
         $content .= $this->name;
-        if ($this->access_modifiers != "const") {
+        if ($this->access_modifiers != "const" && !($this->type && $this->type->is_collection)) {
             $content .=  "?";
         }
         $content .= ": ";

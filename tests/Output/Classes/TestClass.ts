@@ -22,7 +22,7 @@ export default class TestClass {
     public female_inventory_order?: number;
     public female_type_id?: number;
     public id?: number;
-    public introductions?: Introduction[];
+    public introductions: Introduction[];
     public inventory_change?: number;
     public parent_event_id?: number;
     public reproduction_sold_amount?: number;
@@ -37,7 +37,7 @@ export default class TestClass {
         this.deleted_at = init?.deleted_at ? new Date(init.deleted_at) : undefined;
         this.end_date = init?.end_date ? new Date(init.end_date) : undefined;
         this.event_type = init?.event_type ? new EventType(init.event_type) : undefined;
-        this.introductions = init?.introductions ? init.introductions.map(v => new Introduction(v)) : undefined;
+        this.introductions = init?.introductions ? init.introductions.map(v => new Introduction(v)) : [];
         this.start_date = init?.start_date ? new Date(init.start_date) : undefined;
         this.updated_at = init?.updated_at ? new Date(init.updated_at) : undefined;
     }

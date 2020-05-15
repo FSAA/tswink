@@ -130,7 +130,7 @@ class ClassExpression extends Expression
             if ($member->type == null || $member->no_convert) {
                 continue;
             } elseif ($member->type->is_collection) {
-                $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? init." . $member->name . ".map(v => new " . $member->type->name . "(v)) : undefined;\n";
+                $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? init." . $member->name . ".map(v => new " . $member->type->name . "(v)) : [];\n";
             } elseif (!$member->type->isPrimitive()) {
                 $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? new " . $member->type->name . "(init." . $member->name . ") : undefined;\n";
             }
