@@ -32,8 +32,6 @@ class TswinkServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(
-            __DIR__ . '/Config/tswink.php', 'tswink'
-        );
+        $this->mergeConfigFrom(__DIR__ . '/Config/tswink.php', 'tswink');
     }
 }
