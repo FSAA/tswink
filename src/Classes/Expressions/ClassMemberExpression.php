@@ -24,7 +24,7 @@ class ClassMemberExpression extends Expression
     public static function tryParse(string $text, ?ClassMemberExpression &$result): bool
     {
         $classMember = new ClassMemberExpression();
-        preg_match('/const +([a-zA-Z_]+[a-zA-Z0-9_]*) *\= *([0-9]+)/', $text, $matches);
+        preg_match('/const +([a-zA-Z_]+[a-zA-Z0-9_]*) *\= *([0-9\.]+)/', $text, $matches);
         if (count($matches) > 1) {
             $classMember->name = $matches[1];
             $classMember->initial_value = $matches[2];
