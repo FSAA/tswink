@@ -39,6 +39,7 @@ class TswinkGenerator
             foreach ($sources as $enumsPath) {
                 $files = scandir($enumsPath);
                 foreach ($files as $file) {
+                    echo("Processing '" . $file . "'...\n");
                     if (pathinfo(strtolower($file), PATHINFO_EXTENSION) == 'php') {
                         $this->convertFile($enumsPath . "/" . $file, $classesDestination, $enumsDestination, $codeGenerationOptions);
                     }
@@ -102,8 +103,8 @@ class TswinkGenerator
             return;
         }
         $fileContent = file_get_contents($filePath);
-        $class->non_auto_generated_imports = trim(StringUtils::textBetween($fileContent, "// <non-auto-generated-import-declarations>", "// </non-auto-generated-import-declarations>"), "\n");
-        $class->non_auto_generated_class_declarations = trim(StringUtils::textBetween($fileContent, "// <non-auto-generated-class-declarations>", "// </non-auto-generated-class-declarations>"), "\n");
+        $class->non_auto_generated_imports = trim(StringUtils::textBetween($fileContent, "// <non-auto-generated-import-declarations>", "// </non-auto-generated-import-declarations>"), "\r\n");
+        $class->non_auto_generated_class_declarations = trim(StringUtils::textBetween($fileContent, "// <non-auto-generated-class-declarations>", "// </non-auto-generated-class-declarations>"), "\r\n");
     }
 
     private function writeFile($filePath, $content)

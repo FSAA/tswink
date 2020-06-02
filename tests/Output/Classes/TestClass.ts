@@ -1,8 +1,6 @@
 import EventType from "./EventType"
 import Introduction from "./Introduction"
 // <non-auto-generated-import-declarations>
-
-
 import TestImport from "./TestImport"
 // </non-auto-generated-import-declarations>
 
@@ -50,11 +48,7 @@ export default class TestClass {
     
     public testFunction(): any {
     
-    
-    
-    
-    
-    
+        
     
     }
     // </non-auto-generated-class-declarations>

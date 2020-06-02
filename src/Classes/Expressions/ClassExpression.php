@@ -50,9 +50,10 @@ class ClassExpression extends Expression
         }
         if ($class->name == null) {
             return false;
+        } elseif ($class->base_class_name != "Enum") {
+            $classInstance = $class->instantiate();
+            $class->eloquent_relations = self::parseEloquentRelations($classInstance);
         }
-        $classInstance = $class->instantiate();
-        $class->eloquent_relations = self::parseEloquentRelations($classInstance);
         $result = $class;
         return true;
     }

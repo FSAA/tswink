@@ -2,7 +2,7 @@
 
 return [
     // Destination of typescript models
-    'ts_classes_destination' => 'resources/js/classes/models',
+    'ts_classes_destination' => 'resources/js/models',
     // Destination of typescript enums
     'ts_enums_destination' => 'resources/js/enums',
     // Set to true to use spaces intead of tabs.

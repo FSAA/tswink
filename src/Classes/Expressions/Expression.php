@@ -12,7 +12,7 @@ abstract class Expression
         if ($options->indent_use_spaces) {
             return str_repeat(" ", $options->indent_number_of_spaces);
         } else {
-            return str_repeat("\t", $options->indent_number_of_spaces);
+            return "\t";
         }
     }
 
