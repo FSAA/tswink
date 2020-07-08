@@ -1,3 +1,4 @@
+import { uuid } from "uuidv4"
 import EventType from "./EventType"
 import Introduction from "./Introduction"
 // <non-auto-generated-import-declarations>
@@ -29,6 +30,7 @@ export default class TestClass {
     public start_date?: Date;
     public testAccessor?: any;
     public updated_at?: Date;
+    public uuid?: string = uuid();
     
     constructor(init?: Partial<TestClass>) {
         Object.assign(this, init);
@@ -43,12 +45,7 @@ export default class TestClass {
     
     // <non-auto-generated-class-declarations>
     public testAttribute: any;
-    
-    
-    
     public testFunction(): any {
-    
-        
     
     }
     // </non-auto-generated-class-declarations>
