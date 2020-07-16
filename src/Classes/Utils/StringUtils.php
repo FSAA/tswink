@@ -7,7 +7,7 @@ abstract class StringUtils
     public static function indent(string $text, int $indentLevel = 1, string $indentExpression = "    ")
     {
         $indentedText = null;
-        $lines = explode("\n", str_replace("\r", "\n", $text));
+        $lines = explode("\n", str_replace("\r", "", $text));
         foreach ($lines as $line) {
             if ($indentLevel >= 0) {
                 $indentedText .= str_repeat($indentExpression, $indentLevel) . $line . "\n";
