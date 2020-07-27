@@ -34,13 +34,13 @@ export default class TestClass {
     
     constructor(init?: Partial<TestClass>) {
         Object.assign(this, init);
-        this.created_at = init?.created_at ? new Date(init.created_at) : undefined;
-        this.deleted_at = init?.deleted_at ? new Date(init.deleted_at) : undefined;
-        this.end_date = init?.end_date ? new Date(init.end_date) : undefined;
+        this.created_at = init?.created_at ? Date.parseEx(init.created_at) : undefined;
+        this.deleted_at = init?.deleted_at ? Date.parseEx(init.deleted_at) : undefined;
+        this.end_date = init?.end_date ? Date.parseEx(init.end_date) : undefined;
         this.event_type = init?.event_type ? new EventType(init.event_type) : undefined;
         this.introductions = init?.introductions ? init.introductions.map(v => new Introduction(v)) : [];
-        this.start_date = init?.start_date ? new Date(init.start_date) : undefined;
-        this.updated_at = init?.updated_at ? new Date(init.updated_at) : undefined;
+        this.start_date = init?.start_date ? Date.parseEx(init.start_date) : undefined;
+        this.updated_at = init?.updated_at ? Date.parseEx(init.updated_at) : undefined;
     }
     
     // <non-auto-generated-class-declarations>

@@ -132,6 +132,8 @@ class ClassExpression extends Expression
                 continue;
             } elseif ($member->type->is_collection) {
                 $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? init." . $member->name . ".map(v => new " . $member->type->name . "(v)) : [];\n";
+            } elseif ($member->type->name == "Date") {
+                $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? Date.parseEx(init." . $member->name . ") : undefined;\n";
             } elseif (!$member->type->isPrimitive()) {
                 $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? new " . $member->type->name . "(init." . $member->name . ") : undefined;\n";
             }
