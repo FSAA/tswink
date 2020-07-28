@@ -7,6 +7,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Table;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Str;
 use TsWink\Classes\DbToTsTypeConverter;
 use TsWink\Classes\Expressions\ClassExpression;
@@ -78,7 +79,7 @@ class TswinkGenerator
         $uuidType = new TypeExpression();
         $uuidType->name = "string";
         $uuidType->is_collection = false;
-        $uuidClassMember->type = $uuidType ;
+        $uuidClassMember->type = $uuidType;
         array_push($class->members, $uuidClassMember);
     }
 
@@ -105,7 +106,7 @@ class TswinkGenerator
             $classMember->name = Str::snake($relation->name);
             $classMember->type = new TypeExpression();
             $classMember->type->name = $relation->target_class_name;
-            $classMember->type->is_collection = $relation->type === HasMany::class || $relation->type === BelongsToMany::class;
+            $classMember->type->is_collection = $relation->type === HasMany::class || $relation->type === HasManyThrough::class || $relation->type === BelongsToMany::class;
             if ($relation->target_class_name != $class->name) {
                 $tsImport = new ImportExpression();
                 $tsImport->name = $relation->target_class_name;
