@@ -68,8 +68,8 @@ class TswinkGenerator
     private function addUuidToClass(ClassExpression $class)
     {
         $uuidImport = new ImportExpression();
-        $uuidImport->name = "{ uuid }";
-        $uuidImport->target = "uuidv4";
+        $uuidImport->name = "{ v4 as uuid }";
+        $uuidImport->target = "uuid";
         array_push($class->imports, $uuidImport);
         
         $uuidClassMember = new ClassMemberExpression();
