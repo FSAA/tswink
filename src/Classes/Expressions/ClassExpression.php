@@ -96,6 +96,9 @@ class ClassExpression extends Expression
         $content = "export enum {$this->name} {\n";
         $enumContent = null;
         foreach ($this->members as $member) {
+            if ($member->no_convert) {
+                continue;
+            }
             $enumContent .= $member->name . " = " . $member->initial_value . ",\n";
         }
         $content .= $this->indent(trim($enumContent, "\n"), 1, $options) . "\n";
