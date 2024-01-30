@@ -4,6 +4,7 @@
 namespace TsWink\Classes;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Table;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,11 +20,12 @@ use TsWink\Classes\Utils\StringUtils;
 
 class TswinkGenerator
 {
-    /** @var DbToTsTypeConverter */
-    private $typeConverter;
+    private TypeConverter $typeConverter;
 
     /** @var Table[] */
-    protected $tables;
+    protected array $tables;
+
+    protected AbstractSchemaManager $schemaManager;
 
     public function __construct(Connection $dbConnection)
     {
@@ -51,12 +53,14 @@ class TswinkGenerator
 
     public function convertFile(string $filePath, string $classesDestination, string $enumsDestination, ExpressionStringGenerationOptions $codeGenerationOptions)
     {
+        $class = null;
         if (ClassExpression::tryParse(file_get_contents($filePath), $class)) {
             if ($class->base_class_name == "Enum") {
                 $fileName = $enumsDestination;
             } else {
                 $fileName = $classesDestination;
                 $this->addUuidToClass($class);
+                $this->addPhpQualifiedClassName($class);
             }
             $fileName .= "/" . $class->name . ".ts";
             $this->mergeDatabaseSchema($class);
@@ -65,13 +69,26 @@ class TswinkGenerator
         }
     }
 
+    private function addPhpQualifiedClassName(ClassExpression $class): void
+    {
+        $classMember = new ClassMemberExpression();
+        $classMember->name = 'phpQualifiedClassName';
+        $classMember->access_modifiers = 'const';
+        $classMember->initial_value = "'".addSlashes($class->fullyQualifiedClassName())."'";
+        $type = new TypeExpression();
+        $type->name = 'string';
+        $type->is_collection = false;
+        $classMember->type = $type;
+        $class->members[] = $classMember;
+    }
+
     private function addUuidToClass(ClassExpression $class)
     {
         $uuidImport = new ImportExpression();
         $uuidImport->name = "{ v4 as uuid }";
         $uuidImport->target = "uuid";
         array_push($class->imports, $uuidImport);
-        
+
         $uuidClassMember = new ClassMemberExpression();
         $uuidClassMember->name = "uuid";
         $uuidClassMember->access_modifiers = ["public"];

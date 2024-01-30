@@ -43,6 +43,7 @@ class ClassExpression extends Expression
                 $class->name = $matches[1];
                 $class->base_class_name = $matches[2];
             }
+            $classMember = null;
             if (ClassMemberExpression::tryParse($line, $classMember)) {
                 $class->members[$classMember->name] = $classMember;
             }
@@ -53,6 +54,13 @@ class ClassExpression extends Expression
         } elseif ($class->base_class_name != "Enum") {
             $classInstance = $class->instantiate();
             $class->eloquent_relations = self::parseEloquentRelations($classInstance);
+
+            if ($class->name !== 'BaseModel') {
+                $baseModelImport = new ImportExpression();
+                $baseModelImport->name = 'BaseModel';
+                $baseModelImport->target = './BaseModel';
+                $class->imports[] = $baseModelImport;
+            }
         }
         $result = $class;
         return true;
@@ -63,9 +71,14 @@ class ClassExpression extends Expression
         return array_key_exists($name, $this->members);
     }
 
+    public function fullyQualifiedClassName()
+    {
+        return $this->namespace . '\\' . $this->name;
+    }
+
     public function instantiate()
     {
-        $fullyQualifiedClassName = $this->namespace . '\\' . $this->name;
+        $fullyQualifiedClassName = $this->fullyQualifiedClassName();
         return new $fullyQualifiedClassName();
     }
 
@@ -108,6 +121,10 @@ class ClassExpression extends Expression
 
     private function toTypeScriptClass(ExpressionStringGenerationOptions $options): string
     {
+        $extends = '';
+        if ($this->name !== 'BaseModel' && $this->base_class_name !== 'Enum') {
+            $extends = ' extends BaseModel';
+        }
         $content = null;
         foreach ($this->imports as $import) {
             $content .= $import->toTypeScript($options) . "\n";
@@ -115,7 +132,7 @@ class ClassExpression extends Expression
         $content .= "// <non-auto-generated-import-declarations>\n";
         $content .= $this->non_auto_generated_imports . "\n";
         $content .= "// </non-auto-generated-import-declarations>\n\n";
-        $content .= "export default class {$this->name} {\n\n";
+        $content .= "export default class {$this->name}{$extends} {\n\n";
         $classBody = null;
 
         usort($this->members, function ($a, $b) {
@@ -129,7 +146,11 @@ class ClassExpression extends Expression
 
         $classBody .= "\n";
         $classBody .= "constructor(init?: Partial<$this->name>) {\n";
-        $constructorContent = "Object.assign(this, init);\n";
+        $constructorContent = '';
+        if ($extends) {
+            $constructorContent .= "super(init);\n";
+        }
+        $constructorContent .= "Object.assign(this, init);\n";
         foreach ($this->members as $member) {
             if ($member->type == null || $member->no_convert) {
                 continue;
