@@ -5,8 +5,10 @@ namespace TsWink\Classes\Expressions;
 class ExpressionStringGenerationOptions
 {
     /** @var bool */
-    public $indent_use_spaces = true;
+    public $indentUseSpaces = true;
 
     /** @var int */
-    public $indent_number_of_spaces = 4;
+    public $indentNumberOfSpaces = 4;
+
+    public bool $useSingleQuotesForImports = false;
 }

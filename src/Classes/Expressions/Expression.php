@@ -9,17 +9,16 @@ abstract class Expression
 {
     public function getIndentExpression(ExpressionStringGenerationOptions $options): string
     {
-        if ($options->indent_use_spaces) {
-            return str_repeat(" ", $options->indent_number_of_spaces);
-        } else {
-            return "\t";
+        if ($options->indentUseSpaces) {
+            return str_repeat(" ", $options->indentNumberOfSpaces);
         }
+        return "\t";
     }
 
-    public function indent(string $text, int $indentLevel, ExpressionStringGenerationOptions $options)
+    public function indent(string $text, int $indentLevel, ExpressionStringGenerationOptions $options): string
     {
         return StringUtils::indent($text, $indentLevel, $this->getIndentExpression($options));
     }
 
-    abstract public function toTypeScript(ExpressionStringGenerationOptions $options);
+    abstract public function toTypeScript(ExpressionStringGenerationOptions $options): string;
 }

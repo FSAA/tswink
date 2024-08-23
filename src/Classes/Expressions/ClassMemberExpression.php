@@ -10,16 +10,16 @@ class ClassMemberExpression extends Expression
     public $name;
 
     /** @var string */
-    public $access_modifiers;
+    public $accessModifiers;
 
-    /** @var int */
-    public $initial_value;
+    /** @var string */
+    public $initialValue;
 
-    /** @var TypeExpression */
+    /** @var ?TypeExpression */
     public $type;
 
     /** @var bool */
-    public $no_convert = false;
+    public $noConvert = false;
 
     public static function tryParse(string $text, ?ClassMemberExpression &$result): bool
     {
@@ -27,8 +27,8 @@ class ClassMemberExpression extends Expression
         preg_match('/const +([a-zA-Z_]+[a-zA-Z0-9_]*) *\= *([0-9\.]+)/', $text, $matches);
         if (count($matches) > 1) {
             $classMember->name = $matches[1];
-            $classMember->initial_value = $matches[2];
-            $classMember->access_modifiers = "const";
+            $classMember->initialValue = $matches[2];
+            $classMember->accessModifiers = "const";
             $classMember->type = new TypeExpression();
             $classMember->type->name = "number";
             $result = $classMember;
@@ -37,8 +37,8 @@ class ClassMemberExpression extends Expression
         preg_match('/\$([a-zA-Z_]+[a-zA-Z0-9_]*) *\= *[\'"]([^\'"]+)[\'"]/', $text, $matches);
         if (count($matches) > 1) {
             $classMember->name = $matches[1];
-            $classMember->initial_value = $matches[2];
-            $classMember->no_convert = true;
+            $classMember->initialValue = $matches[2];
+            $classMember->noConvert = true;
             $result = $classMember;
             return true;
         }
@@ -54,22 +54,26 @@ class ClassMemberExpression extends Expression
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
         $content = "public ";
-        if ($this->access_modifiers == "const") {
+        if ($this->accessModifiers == "const") {
             $content .= "static readonly ";
         }
         $content .= $this->name;
-        if ($this->access_modifiers != "const" && !($this->type && $this->type->is_collection)) {
+        if ($this->accessModifiers != "const" && !($this->type && $this->type->isCollection)) {
             $content .=  "?";
         }
         $content .= ": ";
-        if ($this->type) {
-            $content .= $this->type->toTypeScript($options);
-        } else {
-            $content .= "any";
-        }
-        if ($this->initial_value != null) {
-            $content .= " = " . $this->initial_value;
+        $content .= $this->resolveType($options);
+        if ($this->initialValue != null) {
+            $content .= " = " . $this->initialValue;
         }
         return $content;
+    }
+
+    public function resolveType(ExpressionStringGenerationOptions $options): string
+    {
+        if ($this->type) {
+            return $this->type->toTypeScript($options);
+        }
+        return "any";
     }
 }

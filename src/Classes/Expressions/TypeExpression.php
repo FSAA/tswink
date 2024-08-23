@@ -8,19 +8,18 @@ class TypeExpression extends Expression
     public $name;
 
     /** @var bool */
-    public $is_collection;
+    public $isCollection;
 
-    public function isPrimitive()
+    public function isPrimitive(): bool
     {
         return in_array($this->name, ["string", "number", "boolean", "any"]);
     }
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
-        if ($this->is_collection) {
+        if ($this->isCollection) {
             return $this->name . "[]";
-        } else {
-            return $this->name;
         }
+        return $this->name;
     }
 }
