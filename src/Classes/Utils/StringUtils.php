@@ -9,6 +9,10 @@ abstract class StringUtils
         $indentedText = null;
         $lines = explode("\n", str_replace("\r", "", $text));
         foreach ($lines as $line) {
+            if (trim($line) === '') {
+                $indentedText .= "\n";
+                continue;
+            }
             $indentedText .= self::applyIdent($indentLevel, $indentExpression, $line);
         }
         return trim($indentedText, "\n");

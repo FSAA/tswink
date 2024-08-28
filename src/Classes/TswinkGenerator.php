@@ -61,7 +61,9 @@ class TswinkGenerator
         if ($fileContent && ClassExpression::tryParse($fileContent, $class)) {
             $fileName = $this->resolveDestination($class, $enumsDestination, $classesDestination);
             if ($class->baseClassName != "Enum") {
-                $this->addUuidToClass($class);
+                if (!$codeGenerationOptions->useInterfaceInsteadOfClass) {
+                    $this->addUuidToClass($class);
+                }
                 $this->addPhpQualifiedClassName($class);
             }
             $fileName .= "/" . $class->name . ".ts";

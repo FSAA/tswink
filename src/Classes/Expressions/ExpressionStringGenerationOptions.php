@@ -11,4 +11,8 @@ class ExpressionStringGenerationOptions
     public $indentNumberOfSpaces = 4;
 
     public bool $useSingleQuotesForImports = false;
+
+    public bool $useInterfaceInsteadOfClass = false;
+
+    public bool $useSemicolon = true;
 }

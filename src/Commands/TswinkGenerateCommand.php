@@ -80,6 +80,23 @@ class TswinkGenerateCommand extends Command
             }
             $codeGenerationOptions->indentUseSpaces = $spacesInsteadOfTabs;
         }
+        $useSingleQuotesForImports = Config::get('tswink.ts_use_single_quotes_for_imports');
+        if ($useSingleQuotesForImports) {
+            if (!is_bool($useSingleQuotesForImports)) {
+                throw new Exception("The 'tswink.ts_use_single_quotes_for_imports' configuration must be a boolean.");
+            }
+            $codeGenerationOptions->useSingleQuotesForImports = $useSingleQuotesForImports;
+        }
+        $useInterfaceInsteadOfClass = Config::get('tswink.ts_use_interface_instead_of_class');
+        if (!is_bool($useInterfaceInsteadOfClass)) {
+            throw new Exception("The 'tswink.ts_use_interface_instead_of_class' configuration must be a boolean.");
+        }
+        $codeGenerationOptions->useInterfaceInsteadOfClass = $useInterfaceInsteadOfClass;
+        $useSemicolon = Config::get('tswink.ts_use_semicolon');
+        if (!is_bool($useSemicolon)) {
+            throw new Exception("The 'tswink.ts_use_semicolon' configuration must be a boolean.");
+        }
+        $codeGenerationOptions->useSemicolon = $useSemicolon;
 
         (new TswinkGenerator($connection))->generate($sources, $classesDestination, $enumsDestination, $codeGenerationOptions);
 

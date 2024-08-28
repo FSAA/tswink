@@ -53,9 +53,15 @@ class ClassMemberExpression extends Expression
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
-        $content = "public ";
+        $content = '';
+        if (!$options->useInterfaceInsteadOfClass) {
+            $content = "public ";
+        }
         if ($this->accessModifiers == "const") {
-            $content .= "static readonly ";
+            if (!$options->useInterfaceInsteadOfClass) {
+                $content = "static ";
+            }
+            $content .= "readonly ";
         }
         $content .= $this->name;
         if ($this->accessModifiers != "const" && !($this->type && $this->type->isCollection)) {
@@ -63,7 +69,10 @@ class ClassMemberExpression extends Expression
         }
         $content .= ": ";
         $content .= $this->resolveType($options);
-        if ($this->initialValue != null) {
+        if (
+            !$options->useInterfaceInsteadOfClass
+            && $this->initialValue != null
+        ) {
             $content .= " = " . $this->initialValue;
         }
         return $content;

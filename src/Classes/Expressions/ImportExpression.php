@@ -12,6 +12,12 @@ class ImportExpression extends Expression
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
-        return "import " . $this->name . " from \"" . $this->target . "\"";
+        return "import " . ($options->useInterfaceInsteadOfClass ? 'type ' : '') . $this->name . " from "
+            . $this->getTypeScriptQuote($options) . $this->target . $this->getTypeScriptQuote($options);
+    }
+
+    public function getTypeScriptQuote(ExpressionStringGenerationOptions $options): string
+    {
+        return $options->useSingleQuotesForImports ? '\'' : '"';
     }
 }
