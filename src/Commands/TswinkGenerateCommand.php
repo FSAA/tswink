@@ -97,6 +97,11 @@ class TswinkGenerateCommand extends Command
             throw new Exception("The 'tswink.ts_use_semicolon' configuration must be a boolean.");
         }
         $codeGenerationOptions->useSemicolon = $useSemicolon;
+        $forcePropertiesOptional = Config::get('tswink.ts_force_properties_optional');
+        if (!is_bool($forcePropertiesOptional)) {
+            throw new Exception("The 'tswink.ts_force_properties_optional' configuration must be a boolean.");
+        }
+        $codeGenerationOptions->forcePropertiesOptional = $forcePropertiesOptional;
 
         (new TswinkGenerator($connection))->generate($sources, $classesDestination, $enumsDestination, $codeGenerationOptions);
 

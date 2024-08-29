@@ -114,11 +114,12 @@ class TswinkGenerator
 
     public function mergeDatabaseSchema(ClassExpression $class): void
     {
-        if (!$class->hasMember("table") || !is_array($this->tables)) {
+        $instance = new ($class->fullyQualifiedClassName())();
+        if (!method_exists($instance, "getTable")) {
             return;
         }
-        $table = current(array_filter($this->tables, function ($t) use ($class) {
-            return $t->getName() == $class->members["table"]->initialValue;
+        $table = current(array_filter($this->tables, function ($t) use ($instance) {
+            return $t->getName() == $instance->getTable();
         }));
         if ($table === false) {
             return;
@@ -128,6 +129,7 @@ class TswinkGenerator
             $classMember->name = $column->getName();
             $classMember->type = new TypeExpression();
             $classMember->type->name = $this->typeConverter->convert($column);
+            $classMember->isOptional = !$column->getNotnull();
             $class->members[$classMember->name] = $classMember;
         }
         foreach ($class->eloquentRelations as $relation) {

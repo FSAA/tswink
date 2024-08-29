@@ -15,4 +15,6 @@ class ExpressionStringGenerationOptions
     public bool $useInterfaceInsteadOfClass = false;
 
     public bool $useSemicolon = true;
+
+    public bool $forcePropertiesOptional = true;
 }

@@ -2,6 +2,9 @@
 
 namespace TsWink\Classes\Expressions;
 
+use ReflectionProperty;
+use ReflectionType;
+
 class TypeExpression extends Expression
 {
     /** @var string */
@@ -13,6 +16,48 @@ class TypeExpression extends Expression
     public function isPrimitive(): bool
     {
         return in_array($this->name, ["string", "number", "boolean", "any"]);
+    }
+
+    public static function fromReflectionMethod(\ReflectionMethod $method): TypeExpression
+    {
+        $type = new TypeExpression();
+        $type->name = self::convertPhpToTypescriptType(self::getReturnTypeName($method->getReturnType()));
+        $type->isCollection = false;
+        return $type;
+    }
+
+    private static function getReturnTypeName(ReflectionType|null $returnType): string
+    {
+        if (!$returnType instanceof \ReflectionNamedType) {
+            return '';
+        }
+        return $returnType->getName();
+    }
+
+    public static function fromReflectionProperty(ReflectionProperty $property): TypeExpression
+    {
+        $type = new TypeExpression();
+        $type->name = self::convertPhpToTypescriptType(self::getReturnTypeName($property->getType()));
+        $type->isCollection = false;
+        return $type;
+    }
+
+    public static function fromConstant(mixed $value): TypeExpression
+    {
+        $type = new TypeExpression();
+        $type->name = self::convertPhpToTypescriptType(gettype($value));
+        $type->isCollection = false;
+        return $type;
+    }
+
+    private static function convertPhpToTypescriptType(string $phpType): string
+    {
+        return match ($phpType) {
+            'int', 'float', 'double', 'integer' => 'number',
+            'bool', 'boolean' => 'boolean',
+            'string' => 'string',
+            default => 'any',
+        };
     }
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string

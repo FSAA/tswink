@@ -2,7 +2,7 @@
 
 namespace TsWink\Classes\Expressions;
 
-use Illuminate\Support\Str;
+use ReflectionMethod;
 
 class ClassMemberExpression extends Expression
 {
@@ -21,38 +21,44 @@ class ClassMemberExpression extends Expression
     /** @var bool */
     public $noConvert = false;
 
-    public static function tryParse(string $text, ?ClassMemberExpression &$result): bool
+    public bool $isOptional = true;
+
+    public static function fromReflectionMethod(ReflectionMethod $method): ?ClassMemberExpression
+    {
+        $nameMatches = [];
+        preg_match('/^get([a-zA-Z0-9_]+)Attribute$/', $method->name, $nameMatches);
+        if (count($nameMatches) !== 2) {
+            return null;
+        }
+        $classMember = new ClassMemberExpression();
+        $classMember->name = lcfirst($nameMatches[1]);
+        $classMember->accessModifiers = "public";
+        $classMember->type = TypeExpression::fromReflectionMethod($method);
+        $classMember->isOptional = true; // We can't be sure it was appended
+        return $classMember;
+    }
+
+    public static function fromConstant(string $name, mixed $value): ?ClassMemberExpression
     {
         $classMember = new ClassMemberExpression();
-        preg_match('/const +([a-zA-Z_]+[a-zA-Z0-9_]*) *\= *([0-9\.]+)/', $text, $matches);
-        if (count($matches) > 1) {
-            $classMember->name = $matches[1];
-            $classMember->initialValue = $matches[2];
-            $classMember->accessModifiers = "const";
-            $classMember->type = new TypeExpression();
-            $classMember->type->name = "number";
-            $result = $classMember;
-            return true;
+        $classMember->name = $name;
+        $constantValue = json_encode($value);
+        if ($constantValue === false) {
+            return null;
         }
-        preg_match('/\$([a-zA-Z_]+[a-zA-Z0-9_]*) *\= *[\'"]([^\'"]+)[\'"]/', $text, $matches);
-        if (count($matches) > 1) {
-            $classMember->name = $matches[1];
-            $classMember->initialValue = $matches[2];
-            $classMember->noConvert = true;
-            $result = $classMember;
-            return true;
-        }
-        preg_match('/function get([a-zA-Z0-9_]*)Attribute/', $text, $matches);
-        if (count($matches) > 0) {
-            $classMember->name = Str::camel($matches[1]);
-            $result = $classMember;
-            return true;
-        }
-        return false;
+        $classMember->initialValue = $constantValue;
+        $classMember->accessModifiers = "const";
+        $classMember->type = TypeExpression::fromConstant($value);
+        $classMember->isOptional = false;
+        return $classMember;
     }
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
+        if ($options->useInterfaceInsteadOfClass && $this->accessModifiers == "const") {
+            return '';
+        }
+
         $content = '';
         if (!$options->useInterfaceInsteadOfClass) {
             $content = "public ";
@@ -65,7 +71,7 @@ class ClassMemberExpression extends Expression
         }
         $content .= $this->name;
         if ($this->accessModifiers != "const" && !($this->type && $this->type->isCollection)) {
-            $content .=  "?";
+            $content .= ($options->forcePropertiesOptional || $this->isOptional) ? "?" : '';
         }
         $content .= ": ";
         $content .= $this->resolveType($options);

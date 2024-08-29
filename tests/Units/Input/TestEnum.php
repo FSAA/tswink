@@ -1,6 +1,6 @@
 <?php
 
-namespace TsWinkTests\Input;
+namespace TsWinkTests\Units\Input;
 
 final class TestEnum extends Enum
 {
