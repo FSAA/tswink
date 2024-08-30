@@ -2,7 +2,9 @@
 
 namespace TsWink\Classes\Expressions;
 
+use ReflectionEnumUnitCase;
 use ReflectionMethod;
+use ReflectionNamedType;
 
 class ClassMemberExpression extends Expression
 {
@@ -49,6 +51,24 @@ class ClassMemberExpression extends Expression
         $classMember->initialValue = $constantValue;
         $classMember->accessModifiers = "const";
         $classMember->type = TypeExpression::fromConstant($value);
+        $classMember->isOptional = false;
+        return $classMember;
+    }
+
+    public static function fromCase(ReflectionEnumUnitCase $case, ?ReflectionNamedType $type): ?ClassMemberExpression
+    {
+        if (!$type) {
+            return null;
+        }
+        $classMember = new ClassMemberExpression();
+        $classMember->name = $case->getName();
+        $constantValue = json_encode($case->getValue());
+        if ($constantValue === false) {
+            return null;
+        }
+        $classMember->initialValue = $constantValue;
+        $classMember->accessModifiers = "const";
+        $classMember->type = TypeExpression::fromReflectionNamedType($type);
         $classMember->isOptional = false;
         return $classMember;
     }

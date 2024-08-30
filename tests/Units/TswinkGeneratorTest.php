@@ -31,10 +31,7 @@ class TswinkGeneratorTest extends TestCase
         $this->dbConnection = DriverManager::getConnection($connectionParams, new Configuration());
     }
 
-    /**
-     * @test
-     */
-    public function itCanGenerateTypescriptClasses(): void
+    public function testItCanGenerateTypescriptClasses(): void
     {
         $sources = ([__DIR__ . "/Input"]);
         $classesDestination = (__DIR__ . "/Output/Classes");

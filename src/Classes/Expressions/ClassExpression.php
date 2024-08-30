@@ -188,14 +188,14 @@ class ClassExpression extends Expression
         if ($enumContent) {
             $content .= $this->indent(trim($enumContent, "\n"), 1, $options) . "\n";
         }
-        $content .= "}";
+        $content .= "}\n";
         return $content;
     }
 
     private function toTypeScriptClass(ExpressionStringGenerationOptions $options): string
     {
         $extends = '';
-        if ($this->name !== 'BaseModel' && $this->baseClassName !== 'Enum') {
+        if ($this->name !== 'BaseModel') {
             $extends = ' extends BaseModel';
         }
         $content = null;
@@ -217,26 +217,7 @@ class ClassExpression extends Expression
 
         $classBody .= "\n";
         if (!$options->useInterfaceInsteadOfClass) {
-            $classBody .= "constructor(init?: Partial<$this->name>) {\n";
-            $constructorContent = '';
-            if ($extends) {
-                $constructorContent .= "super(init);\n";
-            }
-            $constructorContent .= "Object.assign(this, init);\n";
-            foreach ($this->members as $member) {
-                if ($member->type == null || $member->noConvert) {
-                    continue;
-                } elseif ($member->type->isCollection) {
-                    $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? init." . $member->name . ".map(v => new " . $member->type->name . "(v)) : []" . $this->generateSemicolon($options) . "\n";
-                } elseif ($member->type->name == "Date") {
-                    $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? Date.parseEx(init." . $member->name . ") : undefined" . $this->generateSemicolon($options) . "\n";
-                } elseif (!$member->type->isPrimitive()) {
-                    $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? new " . $member->type->name . "(init." . $member->name . ") : undefined" . $this->generateSemicolon($options) . "\n";
-                }
-            }
-
-            $classBody .= $this->indent(trim($constructorContent, "\n"), 1, $options) . "\n";
-            $classBody .= "}\n\n";
+            $classBody .= $this->generateConstructor($options, $extends);
         }
         $isOnlyComment = trim($classBody) === '';
         $classBody .= "// <non-auto-generated-class-declarations>\n";
@@ -270,5 +251,30 @@ class ClassExpression extends Expression
     private function generateSemicolon(ExpressionStringGenerationOptions $options): string
     {
         return $options->useSemicolon ? ';' : '';
+    }
+
+    private function generateConstructor(ExpressionStringGenerationOptions $options, string $extends): string
+    {
+        $constructor = "constructor(init?: Partial<$this->name>) {\n";
+        $constructorContent = '';
+        if ($extends) {
+            $constructorContent .= "super(init);\n";
+        }
+        $constructorContent .= "Object.assign(this, init);\n";
+        foreach ($this->members as $member) {
+            if ($member->type == null || $member->noConvert) {
+                continue;
+            } elseif ($member->type->isCollection) {
+                $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? init." . $member->name . ".map(v => new " . $member->type->name . "(v)) : []" . $this->generateSemicolon($options) . "\n";
+            } elseif ($member->type->name == "Date") {
+                $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? Date.parseEx(init." . $member->name . ") : undefined" . $this->generateSemicolon($options) . "\n";
+            } elseif (!$member->type->isPrimitive()) {
+                $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? new " . $member->type->name . "(init." . $member->name . ") : undefined" . $this->generateSemicolon($options) . "\n";
+            }
+        }
+
+        $constructor .= $this->indent(trim($constructorContent, "\n"), 1, $options) . "\n";
+        $constructor .= "}\n\n";
+        return $constructor;
     }
 }

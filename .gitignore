@@ -1,5 +1,6 @@
 vendor
 .phpunit.result.cache
+.phpunit.cache
 phpunit.xml
 /tests/Units/Output/*
 .env

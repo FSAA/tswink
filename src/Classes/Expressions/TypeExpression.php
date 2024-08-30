@@ -2,6 +2,7 @@
 
 namespace TsWink\Classes\Expressions;
 
+use ReflectionNamedType;
 use ReflectionProperty;
 use ReflectionType;
 
@@ -26,7 +27,15 @@ class TypeExpression extends Expression
         return $type;
     }
 
-    private static function getReturnTypeName(ReflectionType|null $returnType): string
+    public static function fromReflectionNamedType(ReflectionNamedType $reflectionNamedType): TypeExpression
+    {
+        $type = new TypeExpression();
+        $type->name = self::convertPhpToTypescriptType(self::getReturnTypeName($reflectionNamedType));
+        $type->isCollection = false;
+        return $type;
+    }
+
+    private static function getReturnTypeName(?ReflectionType $returnType): string
     {
         if (!$returnType instanceof \ReflectionNamedType) {
             return '';
