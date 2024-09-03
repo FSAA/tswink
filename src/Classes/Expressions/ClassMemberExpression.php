@@ -2,7 +2,9 @@
 
 namespace TsWink\Classes\Expressions;
 
-use Illuminate\Support\Str;
+use ReflectionEnumUnitCase;
+use ReflectionMethod;
+use ReflectionNamedType;
 
 class ClassMemberExpression extends Expression
 {
@@ -10,66 +12,103 @@ class ClassMemberExpression extends Expression
     public $name;
 
     /** @var string */
-    public $access_modifiers;
+    public $accessModifiers;
 
-    /** @var int */
-    public $initial_value;
+    /** @var string */
+    public $initialValue;
 
-    /** @var TypeExpression */
+    /** @var ?TypeExpression */
     public $type;
 
     /** @var bool */
-    public $no_convert = false;
+    public $noConvert = false;
 
-    public static function tryParse(string $text, ?ClassMemberExpression &$result): bool
+    public bool $isOptional = true;
+
+    public static function fromReflectionMethod(ReflectionMethod $method): ?ClassMemberExpression
+    {
+        $nameMatches = [];
+        preg_match('/^get([a-zA-Z0-9_]+)Attribute$/', $method->name, $nameMatches);
+        if (count($nameMatches) !== 2) {
+            return null;
+        }
+        $classMember = new ClassMemberExpression();
+        $classMember->name = lcfirst($nameMatches[1]);
+        $classMember->accessModifiers = "public";
+        $classMember->type = TypeExpression::fromReflectionMethod($method);
+        $classMember->isOptional = true; // We can't be sure it was appended
+        return $classMember;
+    }
+
+    public static function fromConstant(string $name, mixed $value): ?ClassMemberExpression
     {
         $classMember = new ClassMemberExpression();
-        preg_match('/const +([a-zA-Z_]+[a-zA-Z0-9_]*) *\= *([0-9\.]+)/', $text, $matches);
-        if (count($matches) > 1) {
-            $classMember->name = $matches[1];
-            $classMember->initial_value = $matches[2];
-            $classMember->access_modifiers = "const";
-            $classMember->type = new TypeExpression();
-            $classMember->type->name = "number";
-            $result = $classMember;
-            return true;
+        $classMember->name = $name;
+        $constantValue = json_encode($value);
+        if ($constantValue === false) {
+            return null;
         }
-        preg_match('/\$([a-zA-Z_]+[a-zA-Z0-9_]*) *\= *[\'"]([^\'"]+)[\'"]/', $text, $matches);
-        if (count($matches) > 1) {
-            $classMember->name = $matches[1];
-            $classMember->initial_value = $matches[2];
-            $classMember->no_convert = true;
-            $result = $classMember;
-            return true;
+        $classMember->initialValue = $constantValue;
+        $classMember->accessModifiers = "const";
+        $classMember->type = TypeExpression::fromConstant($value);
+        $classMember->isOptional = false;
+        return $classMember;
+    }
+
+    public static function fromCase(ReflectionEnumUnitCase $case, ?ReflectionNamedType $type): ?ClassMemberExpression
+    {
+        if (!$type) {
+            return null;
         }
-        preg_match('/function get([a-zA-Z0-9_]*)Attribute/', $text, $matches);
-        if (count($matches) > 0) {
-            $classMember->name = Str::camel($matches[1]);
-            $result = $classMember;
-            return true;
+        $classMember = new ClassMemberExpression();
+        $classMember->name = $case->getName();
+        $constantValue = json_encode($case->getValue());
+        if ($constantValue === false) {
+            return null;
         }
-        return false;
+        $classMember->initialValue = $constantValue;
+        $classMember->accessModifiers = "const";
+        $classMember->type = TypeExpression::fromReflectionNamedType($type);
+        $classMember->isOptional = false;
+        return $classMember;
     }
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
-        $content = "public ";
-        if ($this->access_modifiers == "const") {
-            $content .= "static readonly ";
+        if ($options->useInterfaceInsteadOfClass && $this->accessModifiers == "const") {
+            return '';
+        }
+
+        $content = '';
+        if (!$options->useInterfaceInsteadOfClass) {
+            $content = "public ";
+        }
+        if ($this->accessModifiers == "const") {
+            if (!$options->useInterfaceInsteadOfClass) {
+                $content = "static ";
+            }
+            $content .= "readonly ";
         }
         $content .= $this->name;
-        if ($this->access_modifiers != "const" && !($this->type && $this->type->is_collection)) {
-            $content .=  "?";
+        if ($this->accessModifiers != "const" && !($this->type && $this->type->isCollection)) {
+            $content .= ($options->forcePropertiesOptional || $this->isOptional) ? "?" : '';
         }
         $content .= ": ";
-        if ($this->type) {
-            $content .= $this->type->toTypeScript($options);
-        } else {
-            $content .= "any";
-        }
-        if ($this->initial_value != null) {
-            $content .= " = " . $this->initial_value;
+        $content .= $this->resolveType($options);
+        if (
+            !$options->useInterfaceInsteadOfClass
+            && $this->initialValue != null
+        ) {
+            $content .= " = " . $this->initialValue;
         }
         return $content;
+    }
+
+    public function resolveType(ExpressionStringGenerationOptions $options): string
+    {
+        if ($this->type) {
+            return $this->type->toTypeScript($options);
+        }
+        return "any";
     }
 }

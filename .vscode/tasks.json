@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Start Docker Compose with .env.testing",
+        "type": "shell",
+        "command": "docker compose --env-file .env --env-file .env.testing up -d",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": [],
+        "detail": "Starts Docker Compose using the .env.testing file"
+      }
+    ]
+  }

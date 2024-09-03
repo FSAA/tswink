@@ -4,33 +4,41 @@ namespace TsWink\Classes\Utils;
 
 abstract class StringUtils
 {
-    public static function indent(string $text, int $indentLevel = 1, string $indentExpression = "    ")
+    public static function indent(string $text, int $indentLevel = 1, string $indentExpression = "    "): string
     {
         $indentedText = null;
         $lines = explode("\n", str_replace("\r", "", $text));
         foreach ($lines as $line) {
-            if ($indentLevel >= 0) {
-                $indentedText .= str_repeat($indentExpression, $indentLevel) . $line . "\n";
-            } else {
-                $indentLength = strlen($line) - strlen(ltrim($line));
-                $indentedText .= substr_replace($line, "", 0, min(strlen($indentExpression) * abs($indentLevel), $indentLength)) . "\n";
+            if (trim($line) === '') {
+                $indentedText .= "\n";
+                continue;
             }
+            $indentedText .= self::applyIdent($indentLevel, $indentExpression, $line);
         }
         return trim($indentedText, "\n");
     }
 
-    public static function textBetween($text, $startingDelimiter, $endDelimiter)
+    private static function applyIdent(int $indentLevel, string $indentExpression, string $lines): string
     {
-        $subtring_start = strpos($text, $startingDelimiter);
-        if ($subtring_start === false) {
+        if ($indentLevel >= 0) {
+            return str_repeat($indentExpression, $indentLevel) . $lines . "\n";
+        }
+        $indentLength = strlen($lines) - strlen(ltrim($lines));
+        return substr_replace($lines, "", 0, min(strlen($indentExpression) * abs($indentLevel), $indentLength)) . "\n";
+    }
+
+    public static function textBetween(string $text, string $startingDelimiter, string $endDelimiter): ?string
+    {
+        $substringStart = strpos($text, $startingDelimiter);
+        if ($substringStart === false) {
             return null;
         }
-        $subtring_start += strlen($startingDelimiter);
-        $substring_end = strpos($text, $endDelimiter, $subtring_start);
-        if ($substring_end === false) {
+        $substringStart += strlen($startingDelimiter);
+        $substringEnd = strpos($text, $endDelimiter, $substringStart);
+        if ($substringEnd === false) {
             return null;
         }
-        $size = $substring_end - $subtring_start;
-        return substr($text, $subtring_start, $size);
+        $size = $substringEnd - $substringStart;
+        return substr($text, $substringStart, $size);
     }
 }

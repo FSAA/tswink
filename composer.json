@@ -5,10 +5,10 @@
     "type": "library",
     "require": {
         "php": ">=7.1",
-        "illuminate/support": "^5.0||^6.0||^7.0||^8.0",
-        "illuminate/database": "5.5.*||^6.0||^7.0||^8.0",
-        "doctrine/dbal": "^2.7@dev",
-        "phpunit/phpunit": "^7.0||^8.0||^9.3.3"
+        "illuminate/support": "^10.0||^11.0",
+        "illuminate/database": "^10.0||^11.0",
+        "doctrine/dbal": "^3.6||^4",
+        "illuminate/console": "^10.0||^11.0"
     },
     "author": {
         "name": "Patompong Savaengsuk ",
@@ -27,5 +27,37 @@
             ]
         }
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "dev",
+    "require-dev": {
+        "phpstan/phpstan": "^1.0||^2.0",
+        "phpunit/phpunit": "^10.1||^11.0",
+        "orchestra/testbench": "^9.4.0"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve --ansi"
+        ],
+        "lint": [
+            "@php vendor/bin/phpstan analyse --verbose --ansi"
+        ],
+        "test": [
+            "@php vendor/bin/phpunit"
+        ]
+    }
 }
