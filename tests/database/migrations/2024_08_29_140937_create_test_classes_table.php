@@ -13,9 +13,15 @@ return new class extends Migration
     {
         //
         Schema::create('test_classes', function (Blueprint $table) {
-            $table->uuid('uuid');
+            $table->id();
+            $table->timestamps();
             $table->string('name');
             $table->integer('value');
+            $table->json('anyArray');
+            $table->json('stringArray');
+            $table->json('deepStringArray');
+            $table->json('associativeArray');
+            $table->json('complexArray');
         });
     }
 

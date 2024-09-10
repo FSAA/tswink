@@ -8,6 +8,10 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
+use phpDocumentor\Reflection\DocBlock\Tags\Property;
+use phpDocumentor\Reflection\DocBlock\Tags\PropertyRead;
+use phpDocumentor\Reflection\DocBlock\Tags\PropertyWrite;
+use phpDocumentor\Reflection\DocBlockFactory;
 
 class ClassExpression extends Expression
 {
@@ -173,6 +177,31 @@ class ClassExpression extends Expression
             return null;
         }
         return $returnTypeName;
+    }
+
+    public function overridePropertiesTypeFromDocBlock(): void
+    {
+        $reflectionClass = new ReflectionClass($this->fullyQualifiedClassName());
+        $doc = $reflectionClass->getDocComment();
+        if (!$doc) {
+            return;
+        }
+
+        $docBlockFactory = DocBlockFactory::createInstance();
+        $docBlock = $docBlockFactory->create($doc);
+        /** @var Array<Property|PropertyRead|PropertyWrite> $propertyTags */
+        $propertyTags = array_merge(
+            $docBlock->getTagsWithTypeByName('property'),
+            $docBlock->getTagsWithTypeByName('property-read'),
+            $docBlock->getTagsWithTypeByName('property-write'),
+        );
+        foreach ($propertyTags as $propertyTag) {
+            $member = $this->members[$propertyTag->getVariableName()] ?? null;
+            if (!$member) {
+                continue;
+            }
+            $member->type = TypeExpression::fromPropertyDecorator($propertyTag);
+        }
     }
 
     private function toTypeScriptEnum(ExpressionStringGenerationOptions $options): string

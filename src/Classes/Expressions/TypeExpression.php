@@ -2,8 +2,14 @@
 
 namespace TsWink\Classes\Expressions;
 
+use phpDocumentor\Reflection\DocBlock\Tags\Property;
+use phpDocumentor\Reflection\DocBlock\Tags\PropertyRead;
+use phpDocumentor\Reflection\DocBlock\Tags\PropertyWrite;
+use phpDocumentor\Reflection\PseudoTypes\ArrayShape;
+use phpDocumentor\Reflection\Type;
+use phpDocumentor\Reflection\Types\Array_;
+use ReflectionClass;
 use ReflectionNamedType;
-use ReflectionProperty;
 use ReflectionType;
 
 class TypeExpression extends Expression
@@ -14,9 +20,11 @@ class TypeExpression extends Expression
     /** @var bool */
     public $isCollection;
 
+    private bool $forceIsPrimitive = false;
+
     public function isPrimitive(): bool
     {
-        return in_array($this->name, ["string", "number", "boolean", "any"]);
+        return $this->forceIsPrimitive || in_array($this->name, ["string", "number", "boolean", "any"]);
     }
 
     public static function fromReflectionMethod(\ReflectionMethod $method): TypeExpression
@@ -43,12 +51,55 @@ class TypeExpression extends Expression
         return $returnType->getName();
     }
 
-    public static function fromReflectionProperty(ReflectionProperty $property): TypeExpression
+    public static function fromPropertyDecorator(Property|PropertyRead|PropertyWrite $propertyTag): ?TypeExpression
     {
         $type = new TypeExpression();
-        $type->name = self::convertPhpToTypescriptType(self::getReturnTypeName($property->getType()));
-        $type->isCollection = false;
+        $reflectionType = $propertyTag->getType();
+        if (!$reflectionType) {
+            return null;
+        }
+        $propertyType = (string) $reflectionType;
+        $type->name = self::decoratorTypeToString($reflectionType);
+        $type->forceIsPrimitive = true;
         return $type;
+    }
+
+    private static function decoratorTypeToString(Type $reflectionType): string
+    {
+        switch (get_class($reflectionType)) {
+            case Array_::class:
+                return self::convertDocumentorArrayToTypescriptType($reflectionType);
+            case ArrayShape::class:
+                return self::convertDocumentorArrayShapeToTypescriptType($reflectionType);
+            default:
+                return self::convertPhpToTypescriptType((string) $reflectionType);
+        }
+    }
+
+    private static function convertDocumentorArrayToTypescriptType(Array_ $reflectionType): string
+    {
+        // We use reflection to get the keyType because the property is protected and calling getKeyType() will return their default value instead of null
+        $realKeyType = (new ReflectionClass(Array_::class))->getProperty('keyType')->getValue($reflectionType);
+        if ($realKeyType === null) {
+            return 'Array<' . self::decoratorTypeToString($reflectionType->getValueType()) . '>';
+        }
+        return '{ '
+            . '[key: ' . self::decoratorTypeToString($reflectionType->getKeyType()) . ']'
+            . ': '
+            . self::decoratorTypeToString($reflectionType->getValueType())
+            . ' }';
+    }
+
+    private static function convertDocumentorArrayShapeToTypescriptType(ArrayShape $arrayShape): string
+    {
+        $shape = '{ ';
+        foreach ($arrayShape->getItems() as $item) {
+            $key = $item->getKey();
+            $value = self::decoratorTypeToString($item->getValue());
+            $shape .= $key . ': ' . $value . ', ';
+        }
+        $shape = rtrim($shape, ', ') . ' }';
+        return $shape;
     }
 
     public static function fromConstant(mixed $value): TypeExpression
