@@ -84,7 +84,7 @@ class TypeExpression extends Expression
             return 'Array<' . self::decoratorTypeToString($reflectionType->getValueType()) . '>';
         }
         return '{ '
-            . self::decoratorTypeToString($reflectionType->getKeyType())
+            . '[key: ' . self::decoratorTypeToString($reflectionType->getKeyType()) . ']'
             . ': '
             . self::decoratorTypeToString($reflectionType->getValueType())
             . ' }';
