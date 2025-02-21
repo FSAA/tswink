@@ -58,7 +58,6 @@ class TypeExpression extends Expression
         if (!$reflectionType) {
             return null;
         }
-        $propertyType = (string) $reflectionType;
         $type->name = self::decoratorTypeToString($reflectionType);
         $type->forceIsPrimitive = true;
         return $type;
@@ -112,10 +111,18 @@ class TypeExpression extends Expression
 
     private static function convertPhpToTypescriptType(string $phpType): string
     {
+        if (strpos($phpType, '|')) {
+            $phpTypes = explode('|', $phpType);
+            return array_reduce($phpTypes, function ($carry, $phpType) {
+                return $carry . ($carry ? ' | ' : '') . self::convertPhpToTypescriptType($phpType);
+            }, '');
+        }
+
         return match ($phpType) {
             'int', 'float', 'double', 'integer' => 'number',
             'bool', 'boolean' => 'boolean',
             'string' => 'string',
+            'null' => 'undefined',
             default => 'any',
         };
     }
