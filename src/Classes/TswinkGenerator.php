@@ -6,10 +6,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Table;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Support\Str;
 use TsWink\Classes\Expressions\ClassExpression;
 use TsWink\Classes\Expressions\ClassMemberExpression;
 use TsWink\Classes\Expressions\EnumExpression;
@@ -17,6 +13,8 @@ use TsWink\Classes\Expressions\ImportExpression;
 use TsWink\Classes\Expressions\TypeExpression;
 use TsWink\Classes\Expressions\ExpressionStringGenerationOptions;
 use TsWink\Classes\Utils\StringUtils;
+
+use function PHPUnit\Framework\assertNotNull;
 
 class TswinkGenerator
 {
@@ -36,20 +34,23 @@ class TswinkGenerator
         $this->tables = $this->schemaManager->listTables();
     }
 
-    /** @param string[] $sources*/
-    public function generate($sources, string $classesDestination, string $enumsDestination, ExpressionStringGenerationOptions $codeGenerationOptions): void
+    /**
+     * @param string[] $sources
+     */
+    public function generate(array $sources, string $classesDestination, string $enumsDestination, ExpressionStringGenerationOptions $codeGenerationOptions): void
     {
-        if (is_array($sources) && count($sources) > 0) {
-            foreach ($sources as $enumsPath) {
-                $files = scandir($enumsPath);
-                if ($files === false) {
-                    continue;
-                }
-                foreach ($files as $file) {
-                    echo("Processing '" . $file . "'...\n");
-                    if (pathinfo(strtolower($file), PATHINFO_EXTENSION) == 'php') {
-                        $this->convertFile($enumsPath . "/" . $file, $classesDestination, $enumsDestination, $codeGenerationOptions);
-                    }
+        if (count($sources) == 0) {
+            return;
+        }
+        foreach ($sources as $enumsPath) {
+            $files = scandir($enumsPath);
+            if ($files === false) {
+                continue;
+            }
+            foreach ($files as $file) {
+                echo("Processing '" . $file . "'...\n");
+                if (pathinfo(strtolower($file), PATHINFO_EXTENSION) == 'php') {
+                    $this->convertFile($enumsPath . "/" . $file, $classesDestination, $enumsDestination, $codeGenerationOptions);
                 }
             }
         }
@@ -60,6 +61,7 @@ class TswinkGenerator
         $class = null;
         $fileContent = file_get_contents($filePath);
         if ($fileContent && (ClassExpression::tryParse($fileContent, $class) || EnumExpression::tryParse($fileContent, $class))) {
+            assertNotNull($class); // Since the tryParse returned true, the class is not null
             $fileName = $this->resolveDestination($class, $enumsDestination, $classesDestination);
             if ($class->baseClassName != "Enum") {
                 if (!$codeGenerationOptions->useInterfaceInsteadOfClass) {
@@ -92,7 +94,7 @@ class TswinkGenerator
         $type = new TypeExpression();
         $type->name = 'string';
         $type->isCollection = false;
-        $classMember->type = $type;
+        $classMember->types = [$type];
         $class->members[] = $classMember;
     }
 
@@ -110,7 +112,7 @@ class TswinkGenerator
         $uuidType = new TypeExpression();
         $uuidType->name = "string";
         $uuidType->isCollection = false;
-        $uuidClassMember->type = $uuidType;
+        $uuidClassMember->types = [$uuidType];
         array_push($class->members, $uuidClassMember);
     }
 
@@ -127,25 +129,11 @@ class TswinkGenerator
             return;
         }
         foreach ($table->getColumns() as $column) {
-            $classMember = new ClassMemberExpression();
-            $classMember->name = $column->getName();
-            $classMember->type = new TypeExpression();
-            $classMember->type->name = $this->typeConverter->convert($column);
-            $classMember->isOptional = !$column->getNotnull();
+            $classMember = ClassMemberExpression::fromColumn($column, $this->typeConverter);
             $class->members[$classMember->name] = $classMember;
         }
         foreach ($class->eloquentRelations as $relation) {
-            $classMember = new ClassMemberExpression();
-            $classMember->name = Str::snake($relation->name);
-            $classMember->type = new TypeExpression();
-            $classMember->type->name = $relation->targetClassName;
-            $classMember->type->isCollection = $relation->type === HasMany::class || $relation->type === HasManyThrough::class || $relation->type === BelongsToMany::class;
-            if ($relation->targetClassName != $class->name) {
-                $tsImport = new ImportExpression();
-                $tsImport->name = $relation->targetClassName;
-                $tsImport->target = "./" . $relation->targetClassName;
-                $class->imports[$tsImport->name] = $tsImport;
-            }
+            $classMember = ClassMemberExpression::fromRelation($relation, $class);
             $class->members[$classMember->name] = $classMember;
         }
     }

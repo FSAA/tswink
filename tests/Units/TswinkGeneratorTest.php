@@ -7,6 +7,7 @@ use TsWink\Classes\Expressions\ExpressionStringGenerationOptions;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Configuration;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class TswinkGeneratorTest extends TestCase
@@ -21,8 +22,12 @@ class TswinkGeneratorTest extends TestCase
         /** @var string[] $connectionConfig */
         $connectionConfig = DB::connection()->getConfig();
         $connectionParams = [];
-        $connectionParams['driver'] = "pdo_" . $connectionConfig['driver'];
-        /** @var array{driver: key-of<DriverManager::DRIVER_MAP>, database: string, username: string} $connectionParams */
+        $driver = 'pdo_' . $connectionConfig['driver'];
+        if (!in_array($driver, DriverManager::getAvailableDrivers())) {
+            throw new Exception("Driver not supported: " . $driver);
+        }
+        /** @var key-of<DriverManager::DRIVER_MAP> $driver */
+        $connectionParams['driver'] = $driver;
         $connectionParams['host'] = $connectionConfig['host'];
         $connectionParams['dbname'] = $connectionConfig['database'];
         $connectionParams['user'] = $connectionConfig['username'];

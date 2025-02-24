@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    backupGlobals="false"
-    bootstrap="vendor/autoload.php"
-    colors="true"
-    processIsolation="false"
-    stopOnFailure="false"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.3/phpunit.xsd"
-    cacheDirectory=".phpunit.cache"
-    backupStaticProperties="false">
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true">
   <testsuites>
     <testsuite name="Unit">
       <directory suffix="Test.php">./tests/Units</directory>
     </testsuite>
   </testsuites>
-    <php>
-        <server name="DB_CONNECTION" value="pgsql"/>
-        <server name="DB_DATABASE" value="tswink"/>
-        <server name="DB_USERNAME" value="tswink"/>
-        <server name="DB_PASSWORD" value=""/>
-        <server name="DB_PORT" value=""/>
-        <server name="DB_HOST" value=""/>
-    </php>
+  <source>
+    <include>
+        <directory>app</directory>
+    </include>
+  </source>
+  <php>
+      <!-- Use your own phpunit.xml file to set the correct values for orchestra workbench -->
+      <server name="DB_CONNECTION" value="pgsql"/>
+      <server name="DB_DATABASE" value="tswink"/>
+      <server name="DB_USERNAME" value="tswink"/>
+      <server name="DB_PASSWORD" value=""/>
+      <server name="DB_PORT" value=""/>
+      <server name="DB_HOST" value=""/>
+  </php>
 </phpunit>

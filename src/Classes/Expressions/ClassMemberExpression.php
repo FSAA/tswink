@@ -2,9 +2,22 @@
 
 namespace TsWink\Classes\Expressions;
 
+use Doctrine\DBAL\Schema\Column;
+use Exception;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use phpDocumentor\Reflection\DocBlock\Tags\Property;
+use phpDocumentor\Reflection\DocBlock\Tags\PropertyRead;
+use phpDocumentor\Reflection\DocBlock\Tags\PropertyWrite;
 use ReflectionEnumUnitCase;
 use ReflectionMethod;
 use ReflectionNamedType;
+use TsWink\Classes\TypeConverter;
 
 class ClassMemberExpression extends Expression
 {
@@ -17,8 +30,8 @@ class ClassMemberExpression extends Expression
     /** @var string */
     public $initialValue;
 
-    /** @var ?TypeExpression */
-    public $type;
+    /** @var ?array<TypeExpression> */
+    public $types;
 
     /** @var bool */
     public $noConvert = false;
@@ -35,8 +48,8 @@ class ClassMemberExpression extends Expression
         $classMember = new ClassMemberExpression();
         $classMember->name = lcfirst($nameMatches[1]);
         $classMember->accessModifiers = "public";
-        $classMember->type = TypeExpression::fromReflectionMethod($method);
-        $classMember->isOptional = true; // We can't be sure it was appended
+        $classMember->types = TypeExpression::fromReflectionMethod($method);
+        $classMember->isOptional = true; // We can't be sure it was added to the model with "append"
         return $classMember;
     }
 
@@ -50,7 +63,7 @@ class ClassMemberExpression extends Expression
         }
         $classMember->initialValue = $constantValue;
         $classMember->accessModifiers = "const";
-        $classMember->type = TypeExpression::fromConstant($value);
+        $classMember->types = TypeExpression::fromConstant($value);
         $classMember->isOptional = false;
         return $classMember;
     }
@@ -68,9 +81,83 @@ class ClassMemberExpression extends Expression
         }
         $classMember->initialValue = $constantValue;
         $classMember->accessModifiers = "const";
-        $classMember->type = TypeExpression::fromReflectionNamedType($type);
+        $classMember->types = TypeExpression::fromReflectionNamedType($type);
         $classMember->isOptional = false;
         return $classMember;
+    }
+
+    public static function fromDocBlock(Property|PropertyRead|PropertyWrite $propertyTag): ?ClassMemberExpression
+    {
+        $variableName = $propertyTag->getVariableName();
+        if (!$variableName || !self::isDocBlockNameUsable($variableName)) {
+            return null;
+        }
+
+        $classMember = new ClassMemberExpression();
+        $classMember->name = $variableName;
+        $classMember->types = TypeExpression::fromPropertyDecorator($propertyTag);
+        $classMember->setIsOptionalFromTypes();
+        return $classMember;
+    }
+
+    private static function isDocBlockNameUsable(string $propertyName): bool
+    {
+        $validVariableNamePatterns = [
+            '/^[a-zA-Z_][a-zA-Z0-9_]*_count$/',
+        ];
+        return !!Arr::first($validVariableNamePatterns, function ($pattern) use ($propertyName) {
+            return !!preg_match($pattern, $propertyName);
+        });
+    }
+
+    public static function fromColumn(Column $column, TypeConverter $typeConverter): ClassMemberExpression
+    {
+        $classMember = new ClassMemberExpression();
+        $classMember->name = $column->getName();
+        $type = new TypeExpression();
+        $type->name = $typeConverter->convert($column);
+        $classMember->types = [$type];
+        $classMember->isOptional = !$column->getNotnull();
+        return $classMember;
+    }
+
+    /**
+     * @param EloquentRelation<Model> $relation
+     */
+    public static function fromRelation(EloquentRelation $relation, ClassExpression &$class): ClassMemberExpression
+    {
+        $typeScriptModelType = $relation->classNameToTypeScriptType();
+
+        $classMember = new ClassMemberExpression();
+        $classMember->name = Str::snake($relation->name);
+        $type = new TypeExpression();
+        $type->name = $typeScriptModelType;
+        $type->isCollection = self::isRelationCollection($relation->type);
+        $classMember->types = [$type];
+        if ($typeScriptModelType != $class->name) {
+            $tsImport = new ImportExpression();
+            $tsImport->name = $typeScriptModelType;
+            $tsImport->target = "./" . $typeScriptModelType;
+            $class->imports[$tsImport->name] = $tsImport;
+        }
+        return $classMember;
+    }
+
+    /**
+     * @param class-string $relationType
+     */
+    private static function isRelationCollection(string $relationType): bool
+    {
+        $collectionRelations = [
+            HasMany::class,
+            HasManyThrough::class,
+            BelongsToMany::class,
+            MorphToMany::class,
+        ];
+
+        return !!Arr::first($collectionRelations, function ($collectionRelation) use ($relationType) {
+            return $relationType === $collectionRelation; // Do not check with if subclass_of abstract, HasOne extends HasOneOrMany, which is not a collection
+        });
     }
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
@@ -79,6 +166,21 @@ class ClassMemberExpression extends Expression
             return '';
         }
 
+        $content = '';
+        $content .= $this->resolveKeywords($options);
+        $content .= ": ";
+        $content .= $this->resolveTypeForTypeScript($options);
+        if (
+            !$options->useInterfaceInsteadOfClass
+            && $this->initialValue != null
+        ) {
+            $content .= " = " . $this->initialValue;
+        }
+        return $content;
+    }
+
+    private function resolveKeywords(ExpressionStringGenerationOptions $options): string
+    {
         $content = '';
         if (!$options->useInterfaceInsteadOfClass) {
             $content = "public ";
@@ -90,25 +192,38 @@ class ClassMemberExpression extends Expression
             $content .= "readonly ";
         }
         $content .= $this->name;
-        if ($this->accessModifiers != "const" && !($this->type && $this->type->isCollection)) {
+        if ($this->accessModifiers != "const" && !($this->isOnlyCollectionType() && !$options->useInterfaceInsteadOfClass)) {
             $content .= ($options->forcePropertiesOptional || $this->isOptional) ? "?" : '';
-        }
-        $content .= ": ";
-        $content .= $this->resolveType($options);
-        if (
-            !$options->useInterfaceInsteadOfClass
-            && $this->initialValue != null
-        ) {
-            $content .= " = " . $this->initialValue;
         }
         return $content;
     }
 
-    public function resolveType(ExpressionStringGenerationOptions $options): string
+    private function isOnlyCollectionType(): bool
     {
-        if ($this->type) {
-            return $this->type->toTypeScript($options);
+        return $this->types && count($this->types) === 1 && $this->types[0]->isCollection;
+    }
+
+    public function resolveTypeForTypeScript(ExpressionStringGenerationOptions $options): string
+    {
+        if ($this->types) {
+            return array_reduce($this->types, function (string $carry, TypeExpression $type) use ($options) {
+                if ($type->name === 'undefined') {
+                    return $carry;
+                }
+                return $carry . ($carry ? ' | ' : '') . $type->toTypeScript($options);
+            }, '');
         }
         return "any";
+    }
+
+    public function setIsOptionalFromTypes(): bool
+    {
+        if (!$this->types) {
+            throw new Exception("Types not set");
+        }
+        $this->isOptional = !!Arr::first($this->types, function (TypeExpression $type) {
+            return $type->name === 'undefined';
+        });
+        return $this->isOptional;
     }
 }

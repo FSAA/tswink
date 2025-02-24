@@ -2,26 +2,40 @@
 
 namespace TsWink\Classes\Expressions;
 
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
+
+/**
+ * @template TRelatedModel of Model
+ */
 class EloquentRelation
 {
     /** @var string */
     public $name;
 
-    /** @var string */
+    /** @var class-string<Relation<TRelatedModel,Model,Collection<int,TRelatedModel>|TRelatedModel>> */
     public $type;
 
-    /** @var string */
+    /** @var class-string<TRelatedModel> */
     public $targetClassName;
 
     /**
-     * @param array{relationName: string, relationType: string, targetClass: string} $relation
+     * @param array{relationName:string,relationType:class-string<Relation<TRelatedModel,Model,Collection<int,TRelatedModel>|TRelatedModel>>,targetClass:class-string<TRelatedModel>} $relation
+     * @return EloquentRelation<TRelatedModel>
      */
     public static function parse(array $relation): EloquentRelation
     {
+        /** @var EloquentRelation<TRelatedModel> $eloquentRelation */
         $eloquentRelation = new EloquentRelation();
         $eloquentRelation->name = $relation['relationName'];
-        $eloquentRelation->targetClassName = substr($relation['targetClass'], strrpos($relation['targetClass'], '\\') + 1);
+        $eloquentRelation->targetClassName = $relation['targetClass'];
         $eloquentRelation->type = $relation['relationType'];
         return $eloquentRelation;
+    }
+
+    public function classNameToTypeScriptType(): string
+    {
+        return substr($this->targetClassName, strrpos($this->targetClassName, '\\') + 1);
     }
 }
