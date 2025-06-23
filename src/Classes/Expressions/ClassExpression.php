@@ -9,10 +9,12 @@ use ReflectionNamedType;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use phpDocumentor\Reflection\DocBlock\Tags\Generic;
 use phpDocumentor\Reflection\DocBlock\Tags\Property;
 use phpDocumentor\Reflection\DocBlock\Tags\PropertyRead;
 use phpDocumentor\Reflection\DocBlock\Tags\PropertyWrite;
 use phpDocumentor\Reflection\DocBlockFactory;
+use phpDocumentor\Reflection\Types\ContextFactory;
 
 class ClassExpression extends Expression
 {
@@ -199,22 +201,79 @@ class ClassExpression extends Expression
 
         $docBlockFactory = DocBlockFactory::createInstance();
         $docBlock = $docBlockFactory->create($doc);
-        /** @var Array<Property|PropertyRead|PropertyWrite> $propertyTags */
+
+        /** @var Array<Property|PropertyRead> $propertyTags */
         $propertyTags = array_merge(
             $docBlock->getTagsWithTypeByName('property'),
             $docBlock->getTagsWithTypeByName('property-read'),
-            $docBlock->getTagsWithTypeByName('property-write'),
         );
+
+        // Handle custom tswink-property tags
+        $tswinkPropertyTags = $docBlock->getTagsByName('tswink-property');
+
         foreach ($propertyTags as $propertyTag) {
-            $member = $this->members[$propertyTag->getVariableName()] ?? null;
-            if (!$member) {
-                $member = ClassMemberExpression::fromDocBlock($propertyTag, $this->imports);
-                if ($member) {
-                    $this->members[$member->name] = $member;
-                }
-                continue;
+            $this->processPropertyTag($propertyTag);
+        }
+
+        foreach ($tswinkPropertyTags as $tswinkPropertyTag) {
+            if (get_class($tswinkPropertyTag) !== Generic::class) {
+                continue; // Skip if not a Generic tag
             }
-            $member->types = TypeExpression::fromPropertyDecorator($propertyTag, $this->imports);
+            $this->processTswinkPropertyTag($tswinkPropertyTag);
+        }
+    }
+
+    private function processPropertyTag(Property|PropertyRead|PropertyWrite $propertyTag): void
+    {
+        $member = $this->members[$propertyTag->getVariableName()] ?? null;
+        if (!$member) {
+            $member = ClassMemberExpression::fromDocBlock($propertyTag, $this->imports);
+            if ($member) {
+                $this->members[$member->name] = $member;
+            }
+            return;
+        }
+        $member->types = TypeExpression::fromPropertyDecorator($propertyTag, $this->imports);
+    }
+
+    private function processTswinkPropertyTag(Generic $tswinkPropertyTag): void
+    {
+        // Parse the tswink-property tag description to extract type and variable name
+        $description = (string) $tswinkPropertyTag->getDescription();
+
+        // Expected format: "type $variableName"
+        if (preg_match('/^(\S+)\s+\$(\w+)(?:\s+(.*))?$/', $description, $matches)) {
+            $typeString = $matches[1];
+            $variableName = $matches[2];
+            $description = $matches[3] ?? '';
+
+            // Create a synthetic property tag for compatibility
+            $syntheticPropertyTag = $this->createSyntheticPropertyTag($typeString, $variableName, $description);
+            if ($syntheticPropertyTag) {
+                $this->processPropertyTag($syntheticPropertyTag);
+            }
+        }
+    }
+
+    private function createSyntheticPropertyTag(string $typeString, string $variableName, string $description): ?Property
+    {
+        try {
+            $contextFactory = new ContextFactory();
+            $context = $contextFactory->createFromReflector(new ReflectionClass($this->fullyQualifiedClassName()));
+
+            // Create a synthetic docblock with just the property tag
+            $syntheticDocBlock = "/**\n * @property $typeString \$$variableName $description\n */";
+            $docBlockFactory = DocBlockFactory::createInstance();
+            $docBlock = $docBlockFactory->create($syntheticDocBlock, $context);
+
+            $propertyTags = $docBlock->getTagsWithTypeByName('property');
+            if (!isset($propertyTags[0]) || get_class($propertyTags[0]) !== Property::class) {
+                return null;
+            }
+            return $propertyTags[0];
+        } catch (Exception $e) {
+            // If parsing fails, return null
+            return null;
         }
     }
 
