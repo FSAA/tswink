@@ -86,7 +86,10 @@ class ClassMemberExpression extends Expression
         return $classMember;
     }
 
-    public static function fromDocBlock(Property|PropertyRead|PropertyWrite $propertyTag): ?ClassMemberExpression
+    /**
+     * @param ImportExpression[] $classImports
+     */
+    public static function fromDocBlock(Property|PropertyRead|PropertyWrite $propertyTag, array $classImports): ?ClassMemberExpression
     {
         $variableName = $propertyTag->getVariableName();
         if (!$variableName || !self::isDocBlockNameUsable($variableName)) {
@@ -95,7 +98,7 @@ class ClassMemberExpression extends Expression
 
         $classMember = new ClassMemberExpression();
         $classMember->name = $variableName;
-        $classMember->types = TypeExpression::fromPropertyDecorator($propertyTag);
+        $classMember->types = TypeExpression::fromPropertyDecorator($propertyTag, $classImports);
         $classMember->setIsOptionalFromTypes();
         return $classMember;
     }

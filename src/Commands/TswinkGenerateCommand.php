@@ -54,9 +54,10 @@ class TswinkGenerateCommand extends Command
         $connection = DriverManager::getConnection($connectionParams, new Configuration());
 
         $sources = Config::get('tswink.php_classes_paths');
-        if (!$sources || !is_array($sources)) {
-            throw new Exception("The 'tswink.php_classes_paths' configuration must be an array.");
+        if (!$sources || !is_array($sources) || !array_reduce($sources, fn ($carry, $item) => $carry && is_string($item), true)) {
+            throw new Exception("The 'tswink.php_classes_paths' configuration must be an array of strings.");
         }
+        /** @var string[] $sources */
         $classesDestination = Config::get('tswink.ts_classes_destination');
         if (!$classesDestination || !is_string($classesDestination)) {
             throw new Exception("The 'tswink.ts_classes_destination' configuration must be a string.");
@@ -66,45 +67,43 @@ class TswinkGenerateCommand extends Command
             throw new Exception("The 'tswink.ts_enums_destination' configuration must be a string.");
         }
         $codeGenerationOptions = new ExpressionStringGenerationOptions();
-        $indentationNumberOfSpaces = Config::get('tswink.ts_indentation_number_of_spaces');
-        if ($indentationNumberOfSpaces) {
-            if (!is_int($indentationNumberOfSpaces)) {
-                throw new Exception("The 'tswink.ts_indentation_number_of_spaces' configuration must be an integer.");
-            }
-            $codeGenerationOptions->indentNumberOfSpaces = $indentationNumberOfSpaces;
-        }
-        $spacesInsteadOfTabs = Config::get('tswink.ts_spaces_instead_of_tabs');
-        if ($spacesInsteadOfTabs) {
-            if (!is_bool($spacesInsteadOfTabs)) {
-                throw new Exception("The 'tswink.ts_spaces_instead_of_tabs' configuration must be a boolean.");
-            }
-            $codeGenerationOptions->indentUseSpaces = $spacesInsteadOfTabs;
-        }
-        $useSingleQuotesForImports = Config::get('tswink.ts_use_single_quotes_for_imports');
-        if ($useSingleQuotesForImports) {
-            if (!is_bool($useSingleQuotesForImports)) {
-                throw new Exception("The 'tswink.ts_use_single_quotes_for_imports' configuration must be a boolean.");
-            }
-            $codeGenerationOptions->useSingleQuotesForImports = $useSingleQuotesForImports;
-        }
-        $useInterfaceInsteadOfClass = Config::get('tswink.ts_use_interface_instead_of_class');
-        if (!is_bool($useInterfaceInsteadOfClass)) {
-            throw new Exception("The 'tswink.ts_use_interface_instead_of_class' configuration must be a boolean.");
-        }
-        $codeGenerationOptions->useInterfaceInsteadOfClass = $useInterfaceInsteadOfClass;
-        $useSemicolon = Config::get('tswink.ts_use_semicolon');
-        if (!is_bool($useSemicolon)) {
-            throw new Exception("The 'tswink.ts_use_semicolon' configuration must be a boolean.");
-        }
-        $codeGenerationOptions->useSemicolon = $useSemicolon;
-        $forcePropertiesOptional = Config::get('tswink.ts_force_properties_optional');
-        if (!is_bool($forcePropertiesOptional)) {
-            throw new Exception("The 'tswink.ts_force_properties_optional' configuration must be a boolean.");
-        }
-        $codeGenerationOptions->forcePropertiesOptional = $forcePropertiesOptional;
+        $codeGenerationOptions->indentNumberOfSpaces = $this->getOptionalIntegerConfig('tswink.ts_indentation_number_of_spaces', $codeGenerationOptions->indentNumberOfSpaces);
+        $codeGenerationOptions->indentUseSpaces = $this->getOptionalBooleanConfig('tswink.ts_spaces_instead_of_tabs', $codeGenerationOptions->indentUseSpaces);
+        $codeGenerationOptions->useSingleQuotesForImports = $this->getOptionalBooleanConfig('tswink.ts_use_single_quotes_for_imports', $codeGenerationOptions->useSingleQuotesForImports);
+        $codeGenerationOptions->useInterfaceInsteadOfClass = $this->getOptionalBooleanConfig('tswink.ts_use_interface_instead_of_class', $codeGenerationOptions->useInterfaceInsteadOfClass);
+        $codeGenerationOptions->useSemicolon = $this->getOptionalBooleanConfig('tswink.ts_use_semicolon', $codeGenerationOptions->useSemicolon);
+        $codeGenerationOptions->forcePropertiesOptional = $this->getOptionalBooleanConfig('tswink.ts_force_properties_optional', $codeGenerationOptions->forcePropertiesOptional);
+        $codeGenerationOptions->createSeparateClassForNewModels = $this->getOptionalBooleanConfig('tswink.ts_create_separate_class_for_new_models', $codeGenerationOptions->createSeparateClassForNewModels);
 
         (new TswinkGenerator($connection))->generate($sources, $classesDestination, $enumsDestination, $codeGenerationOptions);
 
         $this->info("TypeScript classes have been generated.");
+    }
+
+    private function getOptionalIntegerConfig(string $key, int $defaultValue = 0): int
+    {
+        $value = Config::get($key);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if (!is_int($value)) {
+            throw new Exception("The '$key' configuration must be an integer.");
+        }
+        return $value;
+    }
+
+    /**
+     * @SuppressWarnings("PHPMD.BooleanArgumentFlag")
+     */
+    private function getOptionalBooleanConfig(string $key, bool $defaultValue = false): bool
+    {
+        $value = Config::get($key);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if (!is_bool($value)) {
+            throw new Exception("The '$key' configuration must be a boolean.");
+        }
+        return $value;
     }
 }

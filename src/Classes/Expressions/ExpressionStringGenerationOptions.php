@@ -17,4 +17,6 @@ class ExpressionStringGenerationOptions
     public bool $useSemicolon = true;
 
     public bool $forcePropertiesOptional = true;
+
+    public bool $createSeparateClassForNewModels = false;
 }

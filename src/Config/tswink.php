@@ -17,6 +17,8 @@ return [
     'ts_use_semicolon' => true,
     // Set to true to make all model properties optional even if not nullable in the database
     'ts_force_properties_optional' => true,
+    // Set to true to create a separate class for empty models (new instance records that haven't been saved to the database yet, all properties will be optional)
+    'ts_create_separate_class_for_new_models' => false,
 
     // Array of paths to the classes (so you could include vendors models too). Paths need to be relative to the laravel install root folder
     'php_classes_paths' => []

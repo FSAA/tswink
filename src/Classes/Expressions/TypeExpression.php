@@ -2,6 +2,7 @@
 
 namespace TsWink\Classes\Expressions;
 
+use Illuminate\Support\Arr;
 use phpDocumentor\Reflection\DocBlock\Tags\Property;
 use phpDocumentor\Reflection\DocBlock\Tags\PropertyRead;
 use phpDocumentor\Reflection\DocBlock\Tags\PropertyWrite;
@@ -79,9 +80,10 @@ class TypeExpression extends Expression
     }
 
     /**
+     * @param ImportExpression[] $classImports
      * @return null|array<TypeExpression>
      */
-    public static function fromPropertyDecorator(Property|PropertyRead|PropertyWrite $propertyTag): ?array
+    public static function fromPropertyDecorator(Property|PropertyRead|PropertyWrite $propertyTag, array $classImports): ?array
     {
         $reflectionType = $propertyTag->getType();
         if (!$reflectionType) {
@@ -89,7 +91,7 @@ class TypeExpression extends Expression
         }
 
         $types = [];
-        foreach (self::parseDecoratorType($reflectionType) as $typeName) {
+        foreach (self::parseDecoratorType($reflectionType, $classImports) as $typeName) {
             $type = new TypeExpression();
             $type->name = $typeName;
             $type->forceIsPrimitive = true;
@@ -99,41 +101,48 @@ class TypeExpression extends Expression
     }
 
     /**
+     * @param ImportExpression[] $classImports
      * @return array<string>
      */
-    private static function parseDecoratorType(Type $reflectionType): array
+    private static function parseDecoratorType(Type $reflectionType, array $classImports): array
     {
         switch (get_class($reflectionType)) {
             case Array_::class:
-                return [self::convertDocumentorArrayToTypescriptType($reflectionType)];
+                return [self::convertDocumentorArrayToTypescriptType($reflectionType, $classImports)];
             case ArrayShape::class:
-                return [self::convertDocumentorArrayShapeToTypescriptType($reflectionType)];
+                return [self::convertDocumentorArrayShapeToTypescriptType($reflectionType, $classImports)];
             default:
-                return self::convertPhpToTypescriptType((string) $reflectionType);
+                return self::convertPhpToTypescriptType((string) $reflectionType, $classImports);
         }
     }
 
-    private static function convertDocumentorArrayToTypescriptType(Array_ $reflectionType): string
+    /**
+     * @param ImportExpression[] $classImports
+     */
+    private static function convertDocumentorArrayToTypescriptType(Array_ $reflectionType, array $classImports): string
     {
         // We use reflection to get the keyType because the property is protected and calling getKeyType() will return their default value instead of null
         $realKeyType = (new ReflectionClass(Array_::class))->getProperty('keyType')->getValue($reflectionType);
-        $types = self::parseDecoratorType($reflectionType->getValueType());
+        $types = self::parseDecoratorType($reflectionType->getValueType(), $classImports);
         if ($realKeyType === null) {
             return 'Array<' . implode(' | ', $types) . '>';
         }
         return '{ '
-            . '[key: ' . implode(' | ', self::parseDecoratorType($reflectionType->getKeyType())) . ']'
+            . '[key: ' . implode(' | ', self::parseDecoratorType($reflectionType->getKeyType(), $classImports)) . ']'
             . ': '
             . implode(' | ', $types)
             . ' }';
     }
 
-    private static function convertDocumentorArrayShapeToTypescriptType(ArrayShape $arrayShape): string
+    /**
+     * @param ImportExpression[] $classImports
+     */
+    private static function convertDocumentorArrayShapeToTypescriptType(ArrayShape $arrayShape, array $classImports): string
     {
         $shape = '{ ';
         foreach ($arrayShape->getItems() as $item) {
             $key = $item->getKey();
-            $value = self::parseDecoratorType($item->getValue());
+            $value = self::parseDecoratorType($item->getValue(), $classImports);
             $shape .= $key . ': ' . implode(' | ', $value) . ', ';
         }
         $shape = rtrim($shape, ', ') . ' }';
@@ -156,32 +165,56 @@ class TypeExpression extends Expression
     }
 
     /**
+     * @param ImportExpression[]|null $classImports
      * @return array<string>
      */
-    private static function convertPhpToTypescriptType(string $phpTypes): array
+    private static function convertPhpToTypescriptType(string $phpTypes, ?array $classImports = null): array
     {
         $typeScriptTypes = [];
         if (strpos($phpTypes, '|')) {
             $phpTypes = explode('|', $phpTypes);
             foreach ($phpTypes as $phpType) {
-                $typeScriptTypes[] = self::phpTypeNameToTypescript($phpType);
+                $typeScriptTypes[] = self::phpTypeNameToTypescript($phpType, $classImports);
             }
             if (in_array('any', $typeScriptTypes)) {
                 return ['any'];
             }
             return $typeScriptTypes;
         }
-        return [self::phpTypeNameToTypescript($phpTypes)];
+        return [self::phpTypeNameToTypescript($phpTypes, $classImports)];
     }
 
-    private static function phpTypeNameToTypescript(string $phpTypes): string
+    /**
+     * @param ImportExpression[] $classImports
+     */
+    private static function phpTypeNameToTypescript(string $phpTypes, ?array $classImports = null): string
     {
+        if (strpos($phpTypes, '\Illuminate\Database\Eloquent\Collection') === 0) {
+            if (preg_match('/^\\\\Illuminate\\\\Database\\\\Eloquent\\\\Collection<(?:[^,]*,)?(.*)>$/', $phpTypes, $matches)) {
+                $collectionValueType = $matches[1];
+                // Remove the namespace to only keep the class name
+                $valueClass = strpos($collectionValueType, '\\') !== false
+                    ? substr($collectionValueType, strrpos($collectionValueType, '\\') + 1)
+                    : $collectionValueType;
+                return self::phpTypeNameToTypescript($valueClass, $classImports) . '[]';
+            }
+        }
+        $importMatcher = function (string $phpTypes) use ($classImports) {
+            if (!$classImports) {
+                return null;
+            }
+            $matchingImport = Arr::first($classImports, fn (ImportExpression $import) => $import->name === $phpTypes);
+            if ($matchingImport) {
+                return $matchingImport->name;
+            }
+            return null;
+        };
         return match (trim($phpTypes)) {
             'int', 'float', 'double', 'integer' => 'number',
             'bool', 'boolean' => 'boolean',
             'string' => 'string',
             'null' => 'undefined',
-            default => 'any',
+            default => $importMatcher($phpTypes) ?: 'any',
         };
     }
 

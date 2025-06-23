@@ -9,7 +9,7 @@ use UnitEnum;
 
 class EnumExpression extends ClassExpression
 {
-    public static function tryParse(string $text, ?ClassExpression &$enum): bool
+    public static function tryParse(string $text, ?ClassExpression &$enum, ExpressionStringGenerationOptions $codeGenerationOptions): bool
     {
         $namespace = null;
         $enumName = null;
