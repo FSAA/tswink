@@ -242,7 +242,7 @@ class ClassExpression extends Expression
         $description = (string) $tswinkPropertyTag->getDescription();
 
         // Expected format: "type $variableName"
-        if (preg_match('/^(\S+)\s+\$(\w+)(?:\s+(.*))?$/', $description, $matches)) {
+        if (preg_match('/^(.+?)\s+\$(\w+)(?:\s+(.*))?$/', $description, $matches)) {
             $typeString = $matches[1];
             $variableName = $matches[2];
             $description = $matches[3] ?? '';

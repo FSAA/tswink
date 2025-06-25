@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User;
 
 /**
+ * @property bool $tswinkOverride
+ * @tswink-property string $tswinkOverride
  * @property array $anyArray
  * @property-write string[] $stringArray
  * @property-write array<array<string>> $deepStringArray
@@ -51,5 +53,10 @@ class TestClass extends Model
     public function getStringOrIntAccessorAttribute(): string | int
     {
         return "";
+    }
+
+    public function getTswinkOverrideAttribute(): int
+    {
+        return 0;
     }
 }
