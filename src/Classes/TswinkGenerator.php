@@ -83,6 +83,7 @@ class TswinkGenerator
         if (!$codeGenerationOptions->createSeparateClassForNewModels || $class->baseClassName === "Enum") {
             return;
         }
+        $previousForcePropertiesOptional = $codeGenerationOptions->forcePropertiesOptional;
         $codeGenerationOptions->forcePropertiesOptional = true; // Force properties to be optional in the new class
         $fileName = $basePath . "/New" . $class->name . ".ts";
         $class->name = 'New' . $class->name;
@@ -105,6 +106,7 @@ class TswinkGenerator
         $class->imports[0]->name = 'BaseModel';
         $class->imports[0]->target = './BaseModel';
         $this->writeFile($fileName, $class->toTypeScript($codeGenerationOptions));
+        $codeGenerationOptions->forcePropertiesOptional = $previousForcePropertiesOptional; // Restore the original setting
     }
 
     private function resolveDestination(ClassExpression $class, string $enumsDestination, string $classesDestination): string
