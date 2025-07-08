@@ -195,10 +195,24 @@ class ClassMemberExpression extends Expression
             $content .= "readonly ";
         }
         $content .= $this->name;
-        if ($this->accessModifiers != "const" && !($this->isOnlyCollectionType() && !$options->useInterfaceInsteadOfClass)) {
-            $content .= ($options->forcePropertiesOptional || $this->isOptional) ? "?" : '';
-        }
+        $content .= $this->resolveOptionalFlag($options);
         return $content;
+    }
+
+    private function resolveOptionalFlag(ExpressionStringGenerationOptions $options): string
+    {
+        if ($this->accessModifiers === "const") {
+            // const always have an initial value, so they cannot be optional.
+            return '';
+        }
+        if ($this->isOnlyCollectionType() && !$options->useInterfaceInsteadOfClass) {
+            // If it's a collection type and not an interface, we don't add the optional flag because the constructor will always initialize it.
+            return '';
+        }
+        if ($options->forcePropertiesOptional) {
+            return '?';
+        }
+        return $this->isOptional ? '?' : '';
     }
 
     private function isOnlyCollectionType(): bool
