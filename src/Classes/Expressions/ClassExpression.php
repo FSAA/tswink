@@ -105,7 +105,10 @@ class ClassExpression extends Expression
         if ($reflectionClass->getParentClass()) {
             $parentConstants = $reflectionClass->getParentClass()->getConstants();
         }
-        foreach (array_diff($reflectionClass->getConstants(), $parentConstants) as $name => $value) {
+        foreach ($reflectionClass->getConstants() as $name => $value) {
+            if (array_key_exists($name, $parentConstants) && $value === $parentConstants[$name]) {
+                continue; // Skip constants inherited from parent class if they are the same
+            }
             $classMember = ClassMemberExpression::fromConstant($name, $value);
             if ($classMember) {
                 $class->members[$classMember->name] = $classMember;

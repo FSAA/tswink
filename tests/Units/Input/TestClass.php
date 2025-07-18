@@ -19,10 +19,13 @@ use Illuminate\Foundation\Auth\User;
  * @property-read int $student_count
  * @property-read int|null $nullable_student_count
  * @property-read object|null $test_nullable_any_count
+ * @phpstan-ignore missingType.iterableValue
  */
 class TestClass extends Model
 {
     const TEST_CONST = 45.6;
+    const TEST_CONST_STRING = "test";
+    const TEST_CONST_ARRAY = ["test", 123, true];
 
     /**
      * @return BelongsTo<User,$this>

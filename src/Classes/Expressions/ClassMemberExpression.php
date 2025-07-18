@@ -177,9 +177,24 @@ class ClassMemberExpression extends Expression
             !$options->useInterfaceInsteadOfClass
             && $this->initialValue != null
         ) {
-            $content .= " = " . $this->initialValue;
+            $content .= " = " . $this->convertToTypeScriptValue($this->initialValue);
         }
         return $content;
+    }
+
+    private function convertToTypeScriptValue(string $value): string
+    {
+        // Convert all double-quoted strings to single-quoted strings
+        // This handles both simple strings and strings inside arrays/objects
+        $result = preg_replace_callback('/"([^"\\\\]*(\\\\.[^"\\\\]*)*)"/', function($matches) {
+            // Extract the content inside the double quotes
+            $innerValue = $matches[1];
+            // Escape any single quotes and convert backslash-escaped double quotes back to double quotes
+            $escapedValue = str_replace(["'", '\\"'], ["\\'", '"'], $innerValue);
+            return "'" . $escapedValue . "'";
+        }, $value);
+
+        return $result !== null ? $result : $value;
     }
 
     private function resolveKeywords(ExpressionStringGenerationOptions $options): string
