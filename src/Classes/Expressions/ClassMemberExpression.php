@@ -165,10 +165,6 @@ class ClassMemberExpression extends Expression
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
-        if ($options->useInterfaceInsteadOfClass && $this->accessModifiers == "const") {
-            return '';
-        }
-
         $content = '';
         $content .= $this->resolveKeywords($options);
         $content .= ": ";
@@ -179,6 +175,14 @@ class ClassMemberExpression extends Expression
         ) {
             $content .= " = " . $this->convertToTypeScriptValue($this->initialValue);
         }
+        return $content;
+    }
+
+    public function toTypeScriptConstant(): string {
+        if ($this->initialValue === null) {
+            return '';
+        }
+        $content = $this->name . ': ' . $this->convertToTypeScriptValue($this->initialValue);
         return $content;
     }
 
@@ -257,5 +261,13 @@ class ClassMemberExpression extends Expression
             return $type->name === 'undefined';
         });
         return $this->isOptional;
+    }
+
+    public function canGenerateInBody(ExpressionStringGenerationOptions $options): bool
+    {
+        if ($options->useInterfaceInsteadOfClass && $this->accessModifiers == "const") {
+            return false;
+        }
+        return true;
     }
 }

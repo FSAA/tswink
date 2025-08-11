@@ -312,7 +312,7 @@ class ClassExpression extends Expression
             return strcmp($a->name, $b->name);
         });
         foreach ($this->members as $member) {
-            if (!$member->noConvert) {
+            if (!$member->noConvert && $member->canGenerateInBody($options)) {
                 $memberTypescript = $member->toTypeScript($options);
                 if (!$memberTypescript) {
                     continue;
@@ -334,7 +334,33 @@ class ClassExpression extends Expression
         $classBody .= "// </non-auto-generated-class-declarations>";
         $content .= ($isOnlyComment ? "\n" : '') . $this->indent($classBody, 1, $options) . "\n";
         $content .= "}\n";
+
+        if ($options->useInterfaceInsteadOfClass) {
+            $content .= $this->generateInterfaceConstants($options);
+        }
+
         return $content;
+    }
+
+    private function generateInterfaceConstants(ExpressionStringGenerationOptions $options): string {
+        $membersContent = '';
+        foreach ($this->members as $member) {
+            if ($member->noConvert || $member->canGenerateInBody($options)) {
+                continue;
+            }
+            $memberTypescript = $member->toTypeScriptConstant();
+            if (!$memberTypescript) {
+                continue;
+            }
+            $membersContent .= $memberTypescript . ',' . "\n";
+        }
+        if (!$membersContent) {
+            return '';
+        }
+        $constantsSection = "\n" . "export const " . $this->name . "Constants = {\n";
+        $constantsSection .= $this->indent($membersContent, 1, $options) . "\n";
+        $constantsSection .= "}\n";
+        return $constantsSection;
     }
 
     private function generateExportStatement(ExpressionStringGenerationOptions $options, string $extends): string
