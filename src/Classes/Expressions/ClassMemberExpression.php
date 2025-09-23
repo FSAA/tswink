@@ -186,7 +186,7 @@ class ClassMemberExpression extends Expression
         return $content;
     }
 
-    private function convertToTypeScriptValue(string $value): string
+    public function convertToTypeScriptValue(string $value): string
     {
         // Convert all double-quoted strings to single-quoted strings
         // This handles both simple strings and strings inside arrays/objects
