@@ -3,6 +3,7 @@
 namespace TsWink\Classes\Expressions;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use phpDocumentor\Reflection\DocBlock\Tags\Property;
 use phpDocumentor\Reflection\DocBlock\Tags\PropertyRead;
 use phpDocumentor\Reflection\DocBlock\Tags\PropertyWrite;
@@ -24,6 +25,8 @@ class TypeExpression extends Expression
     public $isCollection;
 
     private bool $forceIsPrimitive = false;
+
+    public ?string $pivot = null;
 
     public function isPrimitive(): bool
     {
@@ -220,9 +223,14 @@ class TypeExpression extends Expression
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
-        if ($this->isCollection) {
-            return $this->name . "[]";
+        $name = $this->name;
+        if ($this->pivot !== null) {
+            $name = "SetRequired<" . $this->name . ", '" . Str::snake($this->pivot) . "'>";
         }
-        return $this->name;
+        if ($this->isCollection) {
+            return $name . "[]";
+        }
+
+        return $name;
     }
 }

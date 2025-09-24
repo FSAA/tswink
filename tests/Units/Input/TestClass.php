@@ -5,7 +5,9 @@ namespace TsWinkTests\Units\Input;
 use DateTime;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Foundation\Auth\User;
 
 /**
@@ -41,6 +43,16 @@ class TestClass extends Model
     public function students(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    /**
+     * @return BelongsToMany<Tag,$this,Pivot,'assignment'>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'test_class_tag')
+            ->withPivot(['priority', 'assigned_at'])
+            ->as('assignment');
     }
 
     public function getTestAccessorAttribute(): string

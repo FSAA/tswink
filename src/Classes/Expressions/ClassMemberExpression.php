@@ -136,6 +136,16 @@ class ClassMemberExpression extends Expression
         $type = new TypeExpression();
         $type->name = $typeScriptModelType;
         $type->isCollection = self::isRelationCollection($relation->type);
+        if ($relation->pivotAccessor !== null) {
+            $type->pivot = $relation->pivotAccessor;
+            if (!isset($class->imports['SetRequired'])) {
+                $tsImport = new ImportExpression();
+                $tsImport->name = '{ SetRequired }';
+                $tsImport->internal = false;
+                $tsImport->target = '@universite-laval/script-components';
+                $class->imports[$tsImport->name] = $tsImport;
+            }
+        }
         $classMember->types = [$type];
         if ($typeScriptModelType != $class->name) {
             $tsImport = new ImportExpression();

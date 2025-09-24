@@ -44,6 +44,33 @@ class TswinkGeneratorTest extends TestCase
 
         (new TswinkGenerator($this->dbConnection))->generate($sources, $classesDestination, $enumsDestination, new ExpressionStringGenerationOptions());
 
-        $this->assertEquals(true, true);
+        // Test that basic class generation works
+        $this->assertFileExists($classesDestination . "/TestClass.ts");
+        $this->assertFileExists($classesDestination . "/Tag.ts");
+
+        // Test that pivot interface was generated
+        $this->assertFileExists($classesDestination . "/TestClassTagPivot.ts");
+
+        // Test pivot interface content
+        $pivotContent = file_get_contents($classesDestination . "/TestClassTagPivot.ts");
+        $this->assertNotFalse($pivotContent, "Failed to read pivot interface file");
+        $this->assertStringContainsString("export interface TestClassTagPivot", $pivotContent);
+        $this->assertStringContainsString("priority: number", $pivotContent);
+        $this->assertStringContainsString("assigned_at?: Date", $pivotContent);
+
+        // Test that TestClass has the correct relation with SetRequired
+        $testClassContent = file_get_contents($classesDestination . "/TestClass.ts");
+        $this->assertNotFalse($testClassContent, "Failed to read TestClass file");
+        $this->assertStringContainsString("tags: SetRequired<Tag, 'assignment'>[]", $testClassContent);
+
+        // Test that Tag has the pivot property and bidirectional relation
+        $tagContent = file_get_contents($classesDestination . "/Tag.ts");
+        $this->assertNotFalse($tagContent, "Failed to read Tag file");
+        $this->assertStringContainsString("assignment?: TestClassTagPivot", $tagContent);
+        $this->assertStringContainsString("import TestClassTagPivot from \"./TestClassTagPivot\"", $tagContent);
+        $this->assertStringContainsString("test_classes: SetRequired<TestClass, 'assignment'>[]", $tagContent);
+
+        // Test that TestClass also has the pivot property (bidirectional)
+        $this->assertStringContainsString("assignment?: TestClassTagPivot", $testClassContent);
     }
 }

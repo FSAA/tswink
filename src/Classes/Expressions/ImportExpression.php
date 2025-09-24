@@ -10,6 +10,8 @@ class ImportExpression extends Expression
     /** @var string */
     public $target;
 
+    public bool $internal = true;
+
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
         return "import " . ($options->useInterfaceInsteadOfClass ? 'type ' : '') . $this->name . " from "
