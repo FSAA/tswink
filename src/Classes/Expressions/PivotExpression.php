@@ -113,7 +113,7 @@ class PivotExpression extends Expression
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
         $content = "// Auto-generated pivot interface for table: {$this->tableName}\n";
-        $content .= "export interface {$this->interfaceName} {\n";
+        $content .= "export default interface {$this->interfaceName} {\n";
 
         foreach ($this->fields as $fieldName => $fieldType) {
             $optional = '?'; // All optional since we don't know if it's included in the pivot for that specific query
