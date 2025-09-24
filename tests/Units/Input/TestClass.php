@@ -14,12 +14,13 @@ use Illuminate\Foundation\Auth\User;
  * @property bool $tswinkOverride
  * @tswink-property string $tswinkOverride
  * @property array $anyArray
- * @property-write string[] $stringArray
- * @property-write array<array<string>> $deepStringArray
+ * @property string[] $stringArray
+ * @property array<array<string>> $deepStringArray
  * @property-read array{stringProperty:string,numberProperty:int,complexProperty:array{key:string},subArray:array<string,string>} $associativeArray
  * @property-read array<int,array{foo:bool}> $complexArray
  * @property-read int $student_count
  * @property-read int|null $nullable_student_count
+ * @property-read ?int $nullable_student2_count
  * @property-read object|null $test_nullable_any_count
  * @phpstan-ignore missingType.iterableValue
  */

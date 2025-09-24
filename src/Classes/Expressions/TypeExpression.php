@@ -174,6 +174,13 @@ class TypeExpression extends Expression
     private static function convertPhpToTypescriptType(string $phpTypes, ?array $classImports = null): array
     {
         $typeScriptTypes = [];
+
+        // Handle nullable types with ? prefix
+        if (str_starts_with(trim($phpTypes), '?')) {
+            $baseType = ltrim(trim($phpTypes), '?');
+            $phpTypes = $baseType . '|null';
+        }
+
         if (strpos($phpTypes, '|')) {
             $phpTypes = explode('|', $phpTypes);
             foreach ($phpTypes as $phpType) {

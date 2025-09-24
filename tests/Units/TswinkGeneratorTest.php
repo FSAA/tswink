@@ -55,7 +55,7 @@ class TswinkGeneratorTest extends TestCase
         $pivotContent = file_get_contents($classesDestination . "/TestClassTagPivot.ts");
         $this->assertNotFalse($pivotContent, "Failed to read pivot interface file");
         $this->assertStringContainsString("export interface TestClassTagPivot", $pivotContent);
-        $this->assertStringContainsString("priority: number", $pivotContent);
+        $this->assertStringContainsString("priority?: number", $pivotContent);
         $this->assertStringContainsString("assigned_at?: Date", $pivotContent);
 
         // Test that TestClass has the correct relation with SetRequired
