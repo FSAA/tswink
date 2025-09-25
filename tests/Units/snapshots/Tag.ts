@@ -8,7 +8,7 @@ import type TestClassTagPivot from './TestClassTagPivot'
 // </non-auto-generated-import-declarations>
 
 export default interface Tag extends BaseModel {
-    assignment?: TestClassTagPivot;
+    assignment?: SetRequired<TestClassTagPivot, 'priority'>;
     created_at?: Date;
     id?: number;
     name?: string;

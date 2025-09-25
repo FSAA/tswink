@@ -139,11 +139,7 @@ class ClassMemberExpression extends Expression
         if ($relation->pivotAccessor !== null) {
             $type->pivot = $relation->pivotAccessor;
             if (!isset($class->imports['SetRequired'])) {
-                $tsImport = new ImportExpression();
-                $tsImport->name = '{ SetRequired }';
-                $tsImport->internal = false;
-                $tsImport->target = '@universite-laval/script-components';
-                $class->imports[$tsImport->name] = $tsImport;
+                $class->imports['SetRequired'] = ImportExpression::createSetRequiredImport();
             }
         }
         $classMember->types = [$type];
@@ -188,7 +184,8 @@ class ClassMemberExpression extends Expression
         return $content;
     }
 
-    public function toTypeScriptConstant(): string {
+    public function toTypeScriptConstant(): string
+    {
         if ($this->initialValue === null) {
             return '';
         }
@@ -200,7 +197,7 @@ class ClassMemberExpression extends Expression
     {
         // Convert all double-quoted strings to single-quoted strings
         // This handles both simple strings and strings inside arrays/objects
-        $result = preg_replace_callback('/"([^"\\\\]*(\\\\.[^"\\\\]*)*)"/', function($matches) {
+        $result = preg_replace_callback('/"([^"\\\\]*(\\\\.[^"\\\\]*)*)"/', function ($matches) {
             // Extract the content inside the double quotes
             $innerValue = $matches[1];
             // Escape any single quotes and convert backslash-escaped double quotes back to double quotes

@@ -233,7 +233,24 @@ class TswinkGenerator
 
         // Create type expression for the pivot interface
         $type = new TypeExpression();
-        $type->name = $pivotExpression->interfaceName;
+
+        // Get required columns from the pivot expression
+        $requiredColumns = $pivotExpression->getRequiredColumns();
+
+        if (!empty($requiredColumns)) {
+            // Use SetRequired type with the required columns
+            $requiredColumnsString = "'" . implode("' | '", $requiredColumns) . "'";
+            $type->name = "SetRequired<{$pivotExpression->interfaceName}, {$requiredColumnsString}>";
+
+            // Add import for SetRequired
+            if (!isset($class->imports['SetRequired'])) {
+                $class->imports['SetRequired'] = ImportExpression::createSetRequiredImport();
+            }
+        } else {
+            // No required columns, use the plain interface
+            $type->name = $pivotExpression->interfaceName;
+        }
+
         $type->isCollection = false;
         $classMember->types = [$type];
 
@@ -355,6 +372,4 @@ class TswinkGenerator
             }
         }
     }
-
-
 }

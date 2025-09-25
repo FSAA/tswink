@@ -19,6 +19,9 @@ class PivotExpression extends Expression
     /** @var array<string, string> */
     public array $fields = [];
 
+    /** @var array<string> */
+    private array $requiredColumns = [];
+
     /**
      * Create a PivotExpression from an EloquentRelation with pivot information
      * @param EloquentRelation<\Illuminate\Database\Eloquent\Model> $relation
@@ -46,13 +49,19 @@ class PivotExpression extends Expression
             ? self::getDefaultPivotColumns($pivotTable)
             : $relation->pivotColumns;
 
-        // Extract field types from the pivot columns
+        // Extract field types from the pivot columns and identify required columns
         foreach ($columnsToProcess as $columnName) {
             if (!$pivotTable->hasColumn($columnName)) {
                 throw new Exception("Column '{$columnName}' not found in pivot table '{$relation->pivotTable}' from relation '{$relation->name}");
             }
             $column = $pivotTable->getColumn($columnName);
             $pivot->fields[$columnName] = $typeConverter->convert($column);
+
+            // Track required (non-nullable) columns that are present in this relation
+            if ($column->getNotnull()) {
+                // Column is not nullable, so it's required
+                $pivot->requiredColumns[] = $columnName;
+            }
         }
 
         return $pivot;
@@ -84,7 +93,7 @@ class PivotExpression extends Expression
         // Filter out common foreign key columns (id, created_at, updated_at, etc.)
         $excludeColumns = ['id', 'created_at', 'updated_at'];
 
-        return array_filter($allColumns, function(string $columnName) use ($excludeColumns): bool {
+        return array_filter($allColumns, function (string $columnName) use ($excludeColumns): bool {
             // Exclude foreign key columns (typically ending with _id) and timestamp columns
             if (in_array($columnName, $excludeColumns) || str_ends_with($columnName, '_id')) {
                 return false;
@@ -140,5 +149,14 @@ class PivotExpression extends Expression
     public function hasFields(): bool
     {
         return !empty($this->fields);
+    }
+
+    /**
+     * Get the required (non-nullable) columns for this pivot
+     * @return array<string>
+     */
+    public function getRequiredColumns(): array
+    {
+        return $this->requiredColumns;
     }
 }

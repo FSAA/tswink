@@ -66,12 +66,12 @@ class TswinkGeneratorTest extends TestCase
         // Test that Tag has the pivot property and bidirectional relation
         $tagContent = file_get_contents($classesDestination . "/Tag.ts");
         $this->assertNotFalse($tagContent, "Failed to read Tag file");
-        $this->assertStringContainsString("assignment?: TestClassTagPivot", $tagContent);
+        $this->assertStringContainsString("assignment?: SetRequired<TestClassTagPivot, 'priority'>", $tagContent);
         $this->assertStringContainsString("import type TestClassTagPivot from './TestClassTagPivot'", $tagContent);
         $this->assertStringContainsString("test_classes?: SetRequired<TestClass, 'assignment'>[]", $tagContent);
 
         // Test that TestClass also has the pivot property (bidirectional)
-        $this->assertStringContainsString("assignment?: TestClassTagPivot", $testClassContent);
+        $this->assertStringContainsString("assignment?: SetRequired<TestClassTagPivot, 'priority'>", $testClassContent);
 
         // Test constants (exported separately for interfaces)
         $this->assertStringContainsString("export const TestClassConstants = {", $testClassContent);

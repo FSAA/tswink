@@ -10,7 +10,7 @@ import TestImport from "./TestImport"
 
 export default interface TestClass extends BaseModel {
     anyArray?: Array<any>;
-    assignment?: TestClassTagPivot;
+    assignment?: SetRequired<TestClassTagPivot, 'priority'>;
     associativeArray?: { stringProperty: string, numberProperty: number, complexProperty: { key: string }, subArray: { [key: string]: string } };
     complexArray?: { [key: number]: { foo: boolean } };
     created_at?: Date;

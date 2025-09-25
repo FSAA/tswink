@@ -155,8 +155,8 @@ class TswinkGeneratorComprehensiveTest extends TestCase
         $testClassContent = $this->getGeneratedFileContent("/TestClass.ts");
         $tagContent = $this->getGeneratedFileContent("/Tag.ts");
 
-        $this->assertStringContainsString("assignment?: TestClassTagPivot;", $testClassContent);
-        $this->assertStringContainsString("assignment?: TestClassTagPivot;", $tagContent);
+        $this->assertStringContainsString("assignment?: SetRequired<TestClassTagPivot, 'priority'>;", $testClassContent);
+        $this->assertStringContainsString("assignment?: SetRequired<TestClassTagPivot, 'priority'>;", $tagContent);
         $this->assertStringContainsString("test_classes?: SetRequired<TestClass, 'assignment'>[];", $tagContent);
     }
 

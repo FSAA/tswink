@@ -22,4 +22,16 @@ class ImportExpression extends Expression
     {
         return $options->useSingleQuotesForImports ? '\'' : '"';
     }
+
+    /**
+     * Create a SetRequired import expression
+     */
+    public static function createSetRequiredImport(): ImportExpression
+    {
+        $import = new ImportExpression();
+        $import->name = '{ SetRequired }';
+        $import->target = '@universite-laval/script-components';
+        $import->internal = false;
+        return $import;
+    }
 }
