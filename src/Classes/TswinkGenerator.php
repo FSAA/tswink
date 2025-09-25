@@ -34,12 +34,24 @@ class TswinkGenerator
     /** @var array<string,array<array{pivotAccessor:string,pivotExpression:PivotExpression}>> */
     private array $targetModelPivots = [];
 
-    public function __construct(Connection $dbConnection)
+    private bool $quiet = false;
+
+    public function __construct(Connection $dbConnection, bool $quiet = false)
     {
         $this->typeConverter = new TypeConverter();
+        $this->quiet = $quiet;
 
         $this->schemaManager = $dbConnection->createSchemaManager();
         $this->tables = $this->schemaManager->listTables();
+    }
+
+    /**
+     * Enable or disable quiet mode
+     */
+    public function setQuiet(bool $quiet): self
+    {
+        $this->quiet = $quiet;
+        return $this;
     }
 
     /**
@@ -52,18 +64,24 @@ class TswinkGenerator
         }
 
         // Pass 1: Discover all pivot information
-        echo("Pass 1: Discovering pivot information...\n");
+        if (!$this->quiet) {
+            echo("Pass 1: Discovering pivot information...\n");
+        }
         $this->discoverPivots($sources);
 
         // Pass 2: Generate TypeScript files with complete pivot knowledge
-        echo("Pass 2: Generating TypeScript files...\n");
+        if (!$this->quiet) {
+            echo("Pass 2: Generating TypeScript files...\n");
+        }
         foreach ($sources as $enumsPath) {
             $files = scandir($enumsPath);
             if ($files === false) {
                 continue;
             }
             foreach ($files as $file) {
-                echo("Processing '" . $file . "'...\n");
+                if (!$this->quiet) {
+                    echo("Processing '" . $file . "'...\n");
+                }
                 if (pathinfo(strtolower($file), PATHINFO_EXTENSION) == 'php') {
                     $this->convertFile($enumsPath . "/" . $file, $classesDestination, $enumsDestination, $codeGenerationOptions);
                 }
@@ -332,7 +350,9 @@ class TswinkGenerator
             $fileName = $classesDestination . "/" . $pivotExpression->getFileName();
             $content = $pivotExpression->toTypeScript($codeGenerationOptions);
             $this->writeFile($fileName, $content);
-            echo("Generated pivot interface: {$fileName}\n");
+            if (!$this->quiet) {
+                echo("Generated pivot interface: {$fileName}\n");
+            }
         }
     }
 

@@ -420,11 +420,19 @@ class ClassExpression extends Expression
         foreach ($this->members as $member) {
             if ($member->types == null || $member->noConvert || count($member->types) > 1) {
                 continue;
-            } elseif ($member->types[0]->isCollection) {
+            }
+            
+            if ($member->types[0]->isCollection) {
                 $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? init." . $member->name . ".map(v => new " . $member->types[0]->name . "(v)) : []" . $this->generateSemicolon($options) . "\n";
-            } elseif ($member->types[0]->name == "Date") {
+                continue;
+            }
+            
+            if ($member->types[0]->name == "Date") {
                 $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? Date.parseEx(init." . $member->name . ") : undefined" . $this->generateSemicolon($options) . "\n";
-            } elseif (!$member->types[0]->isPrimitive()) {
+                continue;
+            }
+            
+            if (!$member->types[0]->isPrimitive()) {
                 $constructorContent .= "this." . $member->name . " = init?." . $member->name . " ? new " . $member->types[0]->name . "(init." . $member->name . ") : undefined" . $this->generateSemicolon($options) . "\n";
             }
         }

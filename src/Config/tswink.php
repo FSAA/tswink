@@ -6,13 +6,13 @@ return [
     // Destination of typescript enums
     'ts_enums_destination' => 'resources/js/enums',
     // Set to true to use spaces instead of tabs.
-    'ts_spaces_instead_of_tabs' => false,
+    'ts_spaces_instead_of_tabs' => true,
     // If using spaces instead of tabs, how many spaces?
     'ts_indentation_number_of_spaces' => 4,
     // Set to true to use single quotes for imports
-    'ts_use_single_quotes_for_imports' => false,
+    'ts_use_single_quotes_for_imports' => true,
     // Set to true to use interfaces instead of classes.
-    'ts_use_interface_instead_of_class' => false,
+    'ts_use_interface_instead_of_class' => true,
     // Set to true to use semicolons at the end of the lines.
     'ts_use_semicolon' => true,
     // Set to true to make all model properties optional even if not nullable in the database

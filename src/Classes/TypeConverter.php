@@ -41,21 +41,15 @@ class TypeConverter
     {
         $this->type = $column->getType();
 
-        if ($this->isTypeString()) {
-            return "string";
-        } elseif ($this->isTypeAny()) {
-            return "any";
-        } elseif ($this->isTypeNumber()) {
-            return "number";
-        } elseif ($this->isTypeDecimal()) {
-            return "number";
-        } elseif ($this->isTypeBoolean()) {
-            return "boolean";
-        } elseif ($this->isTypeDateTime()) {
-            return "Date";
-        }
-
-        throw new UnknownTypeException("Unknown type: {$this->type::lookupName($this->type)}");
+        return match (true) {
+            $this->isTypeString() => "string",
+            $this->isTypeAny() => "any",
+            $this->isTypeNumber() => "number",
+            $this->isTypeDecimal() => "number",
+            $this->isTypeBoolean() => "boolean",
+            $this->isTypeDateTime() => "Date",
+            default => throw new UnknownTypeException("Unknown type: {$this->type::lookupName($this->type)}")
+        };
     }
 
     private function isTypeString(): bool
