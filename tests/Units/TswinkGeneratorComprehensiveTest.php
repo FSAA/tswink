@@ -149,7 +149,7 @@ class TswinkGeneratorComprehensiveTest extends TestCase
         $pivotContent = $this->getGeneratedFileContent("/TestClassTagPivot.ts");
         $this->assertStringContainsString("export default interface TestClassTagPivot", $pivotContent);
         $this->assertStringContainsString("priority?: number", $pivotContent);
-        $this->assertStringContainsString("assigned_at?: Date", $pivotContent);
+        $this->assertStringContainsString("assigned_at?: string", $pivotContent);
 
         // Test bidirectional pivot properties
         $testClassContent = $this->getGeneratedFileContent("/TestClass.ts");

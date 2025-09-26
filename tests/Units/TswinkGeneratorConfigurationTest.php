@@ -336,4 +336,34 @@ class TswinkGeneratorConfigurationTest extends TestCase
             "Internal model imports should have 'New' prefix"
         );
     }
+
+    public function testDateTypesInClasses(): void
+    {
+        $options = $this->createExpressionOptionsForTest(
+            useInterface: false
+        );
+
+        $content = $this->generateWithConfig($options);
+
+        // Classes should use Date type for date fields
+        $this->assertStringContainsString("created_at?: Date;", $content);
+        $this->assertStringContainsString("updated_at?: Date;", $content);
+    }
+
+    public function testDateTypesInInterfaces(): void
+    {
+        $options = $this->createExpressionOptionsForTest(
+            useInterface: true
+        );
+
+        $content = $this->generateWithConfig($options);
+
+        // Interfaces should use string type for date fields
+        $this->assertStringContainsString("created_at?: string;", $content);
+        $this->assertStringContainsString("updated_at?: string;", $content);
+        
+        // Should NOT contain Date type for date fields in interfaces
+        $this->assertStringNotContainsString("created_at?: Date;", $content);
+        $this->assertStringNotContainsString("updated_at?: Date;", $content);
+    }
 }

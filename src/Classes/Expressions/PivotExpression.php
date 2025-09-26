@@ -47,7 +47,7 @@ class PivotExpression extends Expression
         // Extract field types from ALL pivot columns for the interface
         foreach ($pivotTable->getColumns() as $column) {
             $columnName = $column->getName();
-            $pivot->fields[$columnName] = $typeConverter->convert($column);
+            $pivot->fields[$columnName] = $typeConverter->convertForPivot($column);
 
             // Only consider columns that are explicitly specified in pivotColumns for required status
             if (in_array($columnName, $relation->pivotColumns) && $column->getNotnull()) {

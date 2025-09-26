@@ -4,7 +4,7 @@ export default interface TestClassTagPivot {
     test_class_id?: number;
     tag_id?: number;
     priority?: number;
-    assigned_at?: Date;
-    created_at?: Date;
-    updated_at?: Date;
+    assigned_at?: string;
+    created_at?: string;
+    updated_at?: string;
 }

@@ -3,6 +3,7 @@
 namespace TsWink\Classes;
 
 use Doctrine\DBAL\Schema\Column;
+use TsWink\Classes\Expressions\ExpressionStringGenerationOptions;
 use Doctrine\DBAL\Types\BigIntType;
 use Doctrine\DBAL\Types\BinaryType;
 use Doctrine\DBAL\Types\BlobType;
@@ -37,7 +38,7 @@ class TypeConverter
     /**
      * @return "string"|"any"|"number"|"boolean"|"Date"
      */
-    public function convert(Column $column): string
+    public function convert(Column $column, ExpressionStringGenerationOptions $options): string
     {
         $this->type = $column->getType();
 
@@ -47,7 +48,26 @@ class TypeConverter
             $this->isTypeNumber() => "number",
             $this->isTypeDecimal() => "number",
             $this->isTypeBoolean() => "boolean",
-            $this->isTypeDateTime() => "Date",
+            $this->isTypeDateTime() => $options->useInterfaceInsteadOfClass ? "string" : "Date",
+            default => throw new UnknownTypeException("Unknown type: {$this->type::lookupName($this->type)}")
+        };
+    }
+
+    /**
+     * Convert column type for pivot interfaces (always returns string for dates)
+     * @return "string"|"any"|"number"|"boolean"
+     */
+    public function convertForPivot(Column $column): string
+    {
+        $this->type = $column->getType();
+
+        return match (true) {
+            $this->isTypeString() => "string",
+            $this->isTypeAny() => "any",
+            $this->isTypeNumber() => "number",
+            $this->isTypeDecimal() => "number",
+            $this->isTypeBoolean() => "boolean",
+            $this->isTypeDateTime() => "string", // Always string for pivot interfaces
             default => throw new UnknownTypeException("Unknown type: {$this->type::lookupName($this->type)}")
         };
     }

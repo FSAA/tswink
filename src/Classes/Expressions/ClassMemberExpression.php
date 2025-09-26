@@ -113,12 +113,12 @@ class ClassMemberExpression extends Expression
         });
     }
 
-    public static function fromColumn(Column $column, TypeConverter $typeConverter): ClassMemberExpression
+    public static function fromColumn(Column $column, TypeConverter $typeConverter, ExpressionStringGenerationOptions $options): ClassMemberExpression
     {
         $classMember = new ClassMemberExpression();
         $classMember->name = $column->getName();
         $type = new TypeExpression();
-        $type->name = $typeConverter->convert($column);
+        $type->name = $typeConverter->convert($column, $options);
         $classMember->types = [$type];
         $classMember->isOptional = !$column->getNotnull();
         return $classMember;

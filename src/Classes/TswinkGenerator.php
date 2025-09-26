@@ -104,7 +104,7 @@ class TswinkGenerator
                     $this->addUuidToClass($class);
                 }
                 $this->addPhpQualifiedClassName($class);
-                $this->mergeDatabaseSchema($class);
+                $this->mergeDatabaseSchema($class, $codeGenerationOptions);
                 $this->addPivotProperties($class);
                 $class->generateMembersFromDocBlock();
             }
@@ -188,7 +188,7 @@ class TswinkGenerator
         array_push($class->members, $uuidClassMember);
     }
 
-    public function mergeDatabaseSchema(ClassExpression $class): void
+    public function mergeDatabaseSchema(ClassExpression $class, ExpressionStringGenerationOptions $codeGenerationOptions): void
     {
         $instance = $class->instantiate();
         if (!method_exists($instance, "getTable")) {
@@ -201,7 +201,7 @@ class TswinkGenerator
             return;
         }
         foreach ($table->getColumns() as $column) {
-            $classMember = ClassMemberExpression::fromColumn($column, $this->typeConverter);
+            $classMember = ClassMemberExpression::fromColumn($column, $this->typeConverter, $codeGenerationOptions);
             $class->members[$classMember->name] = $classMember;
         }
         foreach ($class->eloquentRelations as $relation) {

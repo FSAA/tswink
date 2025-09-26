@@ -56,7 +56,7 @@ class TswinkGeneratorTest extends TestCase
         $this->assertNotFalse($pivotContent, "Failed to read pivot interface file");
         $this->assertStringContainsString("export default interface TestClassTagPivot", $pivotContent);
         $this->assertStringContainsString("priority?: number", $pivotContent);
-        $this->assertStringContainsString("assigned_at?: Date", $pivotContent);
+        $this->assertStringContainsString("assigned_at?: string", $pivotContent);
 
         // Test that TestClass has the correct relation with SetRequired
         $testClassContent = file_get_contents($classesDestination . "/TestClass.ts");
@@ -106,8 +106,8 @@ class TswinkGeneratorTest extends TestCase
         // Test database columns
         $this->assertStringContainsString("id?: number;", $testClassContent);
         $this->assertStringContainsString("name?: string;", $testClassContent);
-        $this->assertStringContainsString("created_at?: Date;", $testClassContent);
-        $this->assertStringContainsString("updated_at?: Date;", $testClassContent);
+        $this->assertStringContainsString("created_at?: string;", $testClassContent);
+        $this->assertStringContainsString("updated_at?: string;", $testClassContent);
         // UUID property might not be present in interface mode
         $this->assertStringContainsString("value?: number;", $testClassContent);
 

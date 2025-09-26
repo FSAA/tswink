@@ -9,11 +9,11 @@ import type TestClassTagPivot from './TestClassTagPivot'
 
 export default interface Tag extends BaseModel {
     assignment?: SetRequired<TestClassTagPivot, 'priority'>;
-    created_at?: Date;
+    created_at?: string;
     id?: number;
     name?: string;
     test_classes?: SetRequired<TestClass, 'assignment'>[];
-    updated_at?: Date;
+    updated_at?: string;
 
     // <non-auto-generated-class-declarations>
 

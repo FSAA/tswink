@@ -13,7 +13,7 @@ export default interface TestClass extends BaseModel {
     assignment?: SetRequired<TestClassTagPivot, 'priority'>;
     associativeArray?: { stringProperty: string, numberProperty: number, complexProperty: { key: string }, subArray: { [key: string]: string } };
     complexArray?: { [key: number]: { foo: boolean } };
-    created_at?: Date;
+    created_at?: string;
     deepStringArray?: Array<Array<string>>;
     id?: number;
     name?: string;
@@ -28,7 +28,7 @@ export default interface TestClass extends BaseModel {
     testAccessor?: string;
     test_nullable_any_count?: any;
     tswinkOverride?: string;
-    updated_at?: Date;
+    updated_at?: string;
     user?: User;
     value?: number;
 
