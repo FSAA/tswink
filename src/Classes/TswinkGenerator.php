@@ -126,6 +126,9 @@ class TswinkGenerator
         $class->name = 'New' . $class->name;
         $class->extends = 'BaseModel';
         foreach ($class->imports as $import) {
+            if (!$import->internal) {
+                continue;
+            }
             array_walk(
                 $class->members,
                 fn (ClassMemberExpression $member) => $member->types && array_walk(

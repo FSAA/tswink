@@ -44,22 +44,14 @@ class PivotExpression extends Expression
             throw new Exception("Error: Pivot table '{$relation->pivotTable}' not found in database from relation '{$relation->name}'\n");
         }
 
-        // If no pivot columns are specified, use all non-foreign-key columns from the pivot table
-        $columnsToProcess = empty($relation->pivotColumns)
-            ? self::getDefaultPivotColumns($pivotTable)
-            : $relation->pivotColumns;
-
-        // Extract field types from the pivot columns and identify required columns
-        foreach ($columnsToProcess as $columnName) {
-            if (!$pivotTable->hasColumn($columnName)) {
-                throw new Exception("Column '{$columnName}' not found in pivot table '{$relation->pivotTable}' from relation '{$relation->name}");
-            }
-            $column = $pivotTable->getColumn($columnName);
+        // Extract field types from ALL pivot columns for the interface
+        foreach ($pivotTable->getColumns() as $column) {
+            $columnName = $column->getName();
             $pivot->fields[$columnName] = $typeConverter->convert($column);
 
-            // Track required (non-nullable) columns that are present in this relation
-            if ($column->getNotnull()) {
-                // Column is not nullable, so it's required
+            // Only consider columns that are explicitly specified in pivotColumns for required status
+            if (in_array($columnName, $relation->pivotColumns) && $column->getNotnull()) {
+                // Column is not nullable and is explicitly exposed via withPivot(), so it's required
                 $pivot->requiredColumns[] = $columnName;
             }
         }
@@ -79,27 +71,6 @@ class PivotExpression extends Expression
             }
         }
         return null;
-    }
-
-    /**
-     * Get default pivot columns by filtering out foreign keys and common Laravel columns
-     * @return array<string>
-     */
-    private static function getDefaultPivotColumns(Table $pivotTable): array
-    {
-        /** @var array<string> $allColumns */
-        $allColumns = Arr::pluck($pivotTable->getColumns(), fn (Column $column) => $column->getName());
-
-        // Filter out common foreign key columns (id, created_at, updated_at, etc.)
-        $excludeColumns = ['id', 'created_at', 'updated_at'];
-
-        return array_filter($allColumns, function (string $columnName) use ($excludeColumns): bool {
-            // Exclude foreign key columns (typically ending with _id) and timestamp columns
-            if (in_array($columnName, $excludeColumns) || str_ends_with($columnName, '_id')) {
-                return false;
-            }
-            return true;
-        });
     }
 
     /**

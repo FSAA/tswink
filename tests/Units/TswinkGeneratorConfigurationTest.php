@@ -295,4 +295,45 @@ class TswinkGeneratorConfigurationTest extends TestCase
         $this->assertStringContainsString("students?: User[];", $content);
         $this->assertStringContainsString("export const TestClassConstants = {", $content);
     }
+
+    public function testSeparateNewModelSetRequiredImport(): void
+    {
+        // Test that SetRequired import doesn't get "New" prefix in new model files
+        $options = $this->createExpressionOptionsForTest(
+            useInterface: true,
+            createSeparateClass: true
+        );
+
+        $sources = [__DIR__ . "/Input"];
+        $classesDestination = $this->tempDir . "/classes";
+        $enumsDestination = $this->tempDir . "/enums";
+
+        (new TswinkGenerator($this->dbConnection, true))->generate(
+            $sources,
+            $classesDestination,
+            $enumsDestination,
+            $options
+        );
+
+        // Check that NewTestClass.ts was created
+        $newClassFile = $classesDestination . "/NewTestClass.ts";
+        $this->assertFileExists($newClassFile, "NewTestClass.ts should be generated");
+
+        $content = file_get_contents($newClassFile);
+        $this->assertNotFalse($content, "Should be able to read NewTestClass.ts");
+
+        // SetRequired import should NOT have "New" prefix (it's an external import)
+        $this->assertStringContainsString(
+            'import type { SetRequired } from "@universite-laval/script-components"',
+            $content,
+            "SetRequired import should not have 'New' prefix - it's external"
+        );
+
+        // But internal model imports SHOULD have "New" prefix
+        $this->assertStringContainsString(
+            'import type NewUser from "./NewUser"',
+            $content,
+            "Internal model imports should have 'New' prefix"
+        );
+    }
 }
