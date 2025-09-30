@@ -10,7 +10,9 @@ class ImportExpression extends Expression
     /** @var string */
     public $target;
 
-    public bool $internal = true;
+    public bool $isInternal = true;
+
+    public bool $isPivot = false;
 
     public function toTypeScript(ExpressionStringGenerationOptions $options): string
     {
@@ -31,7 +33,7 @@ class ImportExpression extends Expression
         $import = new ImportExpression();
         $import->name = '{ SetRequired }';
         $import->target = '@universite-laval/script-components';
-        $import->internal = false;
+        $import->isInternal = false;
         return $import;
     }
 }

@@ -335,6 +335,20 @@ class TswinkGeneratorConfigurationTest extends TestCase
             $content,
             "Internal model imports should have 'New' prefix"
         );
+
+        // Pivot imports should NOT have "New" prefix (they are not models)
+        $this->assertStringContainsString(
+            'import type TestClassTagPivot from "./TestClassTagPivot"',
+            $content,
+            "Pivot imports should not have 'New' prefix - they are always nullable unlike models"
+        );
+
+        // Make sure we're not accidentally adding "New" to pivot imports
+        $this->assertStringNotContainsString(
+            'import type NewTestClassTagPivot from "./NewTestClassTagPivot"',
+            $content,
+            "Pivot imports should never have 'New' prefix"
+        );
     }
 
     public function testDateTypesInClasses(): void
@@ -361,7 +375,7 @@ class TswinkGeneratorConfigurationTest extends TestCase
         // Interfaces should use string type for date fields
         $this->assertStringContainsString("created_at?: string;", $content);
         $this->assertStringContainsString("updated_at?: string;", $content);
-        
+
         // Should NOT contain Date type for date fields in interfaces
         $this->assertStringNotContainsString("created_at?: Date;", $content);
         $this->assertStringNotContainsString("updated_at?: Date;", $content);

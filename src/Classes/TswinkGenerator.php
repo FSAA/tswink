@@ -126,7 +126,7 @@ class TswinkGenerator
         $class->name = 'New' . $class->name;
         $class->extends = 'BaseModel';
         foreach ($class->imports as $import) {
-            if (!$import->internal) {
+            if (!$import->isInternal || $import->isPivot) {
                 continue;
             }
             array_walk(
@@ -264,6 +264,7 @@ class TswinkGenerator
         $pivotImport = new ImportExpression();
         $pivotImport->name = $pivotExpression->interfaceName;
         $pivotImport->target = "./" . $pivotExpression->interfaceName;
+        $pivotImport->isPivot = true;
         $class->imports[$pivotImport->name] = $pivotImport;
     }
 
