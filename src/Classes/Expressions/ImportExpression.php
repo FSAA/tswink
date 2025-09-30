@@ -14,7 +14,7 @@ class ImportExpression extends Expression
 
     public bool $isPivot = false;
 
-    public function toTypeScript(ExpressionStringGenerationOptions $options): string
+    public function toTypeScript(ExpressionStringGenerationOptions $options, GenerationContext $context): string
     {
         return "import " . ($options->useInterfaceInsteadOfClass ? 'type ' : '') . $this->name . " from "
             . $this->getTypeScriptQuote($options) . $this->target . $this->getTypeScriptQuote($options);

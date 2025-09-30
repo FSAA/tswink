@@ -322,11 +322,11 @@ class TswinkGeneratorConfigurationTest extends TestCase
         $content = file_get_contents($newClassFile);
         $this->assertNotFalse($content, "Should be able to read NewTestClass.ts");
 
-        // SetRequired import should NOT have "New" prefix (it's an external import)
-        $this->assertStringContainsString(
-            'import type { SetRequired } from "@universite-laval/script-components"',
+        // SetRequired should NOT be imported since it's not used in new models
+        $this->assertStringNotContainsString(
+            'import type { SetRequired }',
             $content,
-            "SetRequired import should not have 'New' prefix - it's external"
+            "SetRequired should not be imported if not used in new models"
         );
 
         // But internal model imports SHOULD have "New" prefix
@@ -379,5 +379,107 @@ class TswinkGeneratorConfigurationTest extends TestCase
         // Should NOT contain Date type for date fields in interfaces
         $this->assertStringNotContainsString("created_at?: Date;", $content);
         $this->assertStringNotContainsString("updated_at?: Date;", $content);
+    }
+
+    public function testNewModelPivotPropertiesDoNotHaveSetRequired(): void
+    {
+        // Test that pivot properties in new models don't have SetRequired wrapping
+        // since new models don't exist yet and can't have required pivot data
+        $options = $this->createExpressionOptionsForTest(
+            useInterface: true,
+            createSeparateClass: true
+        );
+
+        $sources = [__DIR__ . "/Input"];
+        $classesDestination = $this->tempDir . "/classes";
+        $enumsDestination = $this->tempDir . "/enums";
+
+        (new TswinkGenerator($this->dbConnection, true))->generate(
+            $sources,
+            $classesDestination,
+            $enumsDestination,
+            $options
+        );
+
+        // Check NewTestClass.ts content
+        $newClassFile = $classesDestination . "/NewTestClass.ts";
+        $this->assertFileExists($newClassFile, "NewTestClass.ts should be generated");
+
+        $content = file_get_contents($newClassFile);
+        $this->assertNotFalse($content, "Should be able to read NewTestClass.ts");
+
+        // Pivot properties in new models should NOT have SetRequired wrapping
+        $this->assertStringNotContainsString(
+            "SetRequired<TestClassTagPivot",
+            $content,
+            "New models should not have SetRequired wrapping on pivot properties since they don't exist yet"
+        );
+
+        // But should still have the basic pivot type
+        $this->assertStringContainsString(
+            "assignment?: TestClassTagPivot",
+            $content,
+            "New models should still have pivot properties, just without SetRequired"
+        );
+
+        // Compare with regular TestClass.ts which SHOULD have SetRequired
+        $regularClassFile = $classesDestination . "/TestClass.ts";
+        $this->assertFileExists($regularClassFile, "TestClass.ts should be generated");
+
+        $regularContent = file_get_contents($regularClassFile);
+        $this->assertNotFalse($regularContent, "Should be able to read TestClass.ts");
+
+        // Regular models SHOULD have SetRequired for pivot properties with required columns
+        $this->assertStringContainsString(
+            "SetRequired<TestClassTagPivot",
+            $regularContent,
+            "Regular models should have SetRequired wrapping on pivot properties with required columns"
+        );
+    }
+
+    public function testNewModelsDoNotHaveUnusedSetRequiredImports(): void
+    {
+        // Test that new models don't have unused SetRequired imports
+        // This verifies that SetRequired imports are only added when actually used
+        $options = $this->createExpressionOptionsForTest(
+            useInterface: true,
+            createSeparateClass: true
+        );
+
+        $sources = [__DIR__ . "/Input"];
+        $classesDestination = $this->tempDir . "/classes";
+        $enumsDestination = $this->tempDir . "/enums";
+
+        (new TswinkGenerator($this->dbConnection, true))->generate(
+            $sources,
+            $classesDestination,
+            $enumsDestination,
+            $options
+        );
+
+        // Check NewTestClass.ts content
+        $newClassFile = $classesDestination . "/NewTestClass.ts";
+        $this->assertFileExists($newClassFile, "NewTestClass.ts should be generated");
+
+        $content = file_get_contents($newClassFile);
+        $this->assertNotFalse($content, "Should be able to read NewTestClass.ts");
+
+        // If SetRequired is not used in the content, it should not be imported
+        $hasSetRequiredUsage = strpos($content, 'SetRequired<') !== false;
+        $hasSetRequiredImport = strpos($content, 'import type { SetRequired }') !== false;
+
+        if (!$hasSetRequiredUsage) {
+            $this->assertFalse(
+                $hasSetRequiredImport,
+                "SetRequired should not be imported if it's not used in the class content"
+            );
+        }
+
+        // Additionally verify that SetRequired is not used anywhere in new model pivot properties
+        $this->assertStringNotContainsString(
+            'SetRequired<',
+            $content,
+            "New models should not use SetRequired anywhere since they don't exist yet"
+        );
     }
 }

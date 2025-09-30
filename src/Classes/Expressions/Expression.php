@@ -20,5 +20,5 @@ abstract class Expression
         return StringUtils::indent($text, $indentLevel, $this->getIndentExpression($options));
     }
 
-    abstract public function toTypeScript(ExpressionStringGenerationOptions $options): string;
+    abstract public function toTypeScript(ExpressionStringGenerationOptions $options, GenerationContext $context): string;
 }

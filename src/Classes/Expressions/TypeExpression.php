@@ -15,8 +15,9 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionType;
 use ReflectionUnionType;
+use TsWink\Classes\Expressions\Contracts\RequiresImports;
 
-class TypeExpression extends Expression
+class TypeExpression extends Expression implements RequiresImports
 {
     /** @var string */
     public $name;
@@ -27,6 +28,9 @@ class TypeExpression extends Expression
     private bool $forceIsPrimitive = false;
 
     public ?string $pivot = null;
+
+    /** @var array<string> */
+    public array $pivotRequiredColumns = [];
 
     public function isPrimitive(): bool
     {
@@ -228,16 +232,87 @@ class TypeExpression extends Expression
         };
     }
 
-    public function toTypeScript(ExpressionStringGenerationOptions $options): string
+    public function toTypeScript(ExpressionStringGenerationOptions $options, GenerationContext $context): string
     {
-        $name = $this->name;
-        if ($this->pivot !== null) {
-            $name = "SetRequired<" . $this->name . ", '" . Str::snake($this->pivot) . "'>";
+        $name = $context->getMappedTypeName($this->name);
+
+        // Apply SetRequired wrapper for pivot relationships if we have required columns and not generating for new model
+        if ($context->isForNewModel() === false && !empty($this->pivotRequiredColumns)) {
+            $requiredColumnsString = "'" . implode("' | '", $this->pivotRequiredColumns) . "'";
+            $name = "SetRequired<" . $name . ", " . $requiredColumnsString . ">";
+        } elseif ($context->isForNewModel() === false && $this->pivot !== null) {
+            $name = "SetRequired<" . $name . ", '" . Str::snake($this->pivot) . "'>";
         }
+
         if ($this->isCollection) {
             return $name . "[]";
         }
 
         return $name;
+    }
+
+    /**
+     * Get all imports required by this type expression
+     * @return ImportExpression[]
+     */
+    public function getRequiredImports(GenerationContext $context): array
+    {
+        $imports = [];
+
+        // Handle SetRequired import
+        if ($this->needsSetRequired($context)) {
+            $imports['SetRequired'] = ImportExpression::createSetRequiredImport();
+        }
+
+        // Handle custom type imports (non-primitive types)
+        if (!$this->isPrimitive() && !$this->isBuiltInType()) {
+            $import = $this->createTypeImport($context);
+            if ($import) {
+                $imports[$import->name] = $import;
+            }
+        }
+
+        return $imports;
+    }
+
+    /**
+     * Check if this type needs SetRequired import
+     */
+    private function needsSetRequired(GenerationContext $context): bool
+    {
+        return $context->isForNewModel() === false &&
+               (!empty($this->pivotRequiredColumns) || $this->pivot !== null);
+    }
+
+    /**
+     * Check if this is a built-in TypeScript type
+     */
+    private function isBuiltInType(): bool
+    {
+        return in_array($this->name, ['string', 'number', 'boolean', 'Date', 'any', 'Array', 'undefined']);
+    }
+
+    /**
+     * Create an import expression for this type
+     */
+    private function createTypeImport(GenerationContext $context): ?ImportExpression
+    {
+        $mappedName = $context->getMappedTypeName($this->name);
+
+        // Don't create imports for types that contain generic syntax
+        if (strpos($mappedName, '<') !== false || strpos($mappedName, '>') !== false) {
+            return null;
+        }
+
+        $import = new ImportExpression();
+        $import->name = $mappedName;
+        $import->target = './' . $mappedName;
+
+        // Mark pivot imports
+        if (str_ends_with($mappedName, 'Pivot')) {
+            $import->isPivot = true;
+        }
+
+        return $import;
     }
 }

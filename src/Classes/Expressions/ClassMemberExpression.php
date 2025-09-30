@@ -18,8 +18,9 @@ use ReflectionEnumUnitCase;
 use ReflectionMethod;
 use ReflectionNamedType;
 use TsWink\Classes\TypeConverter;
+use TsWink\Classes\Expressions\Contracts\RequiresImports;
 
-class ClassMemberExpression extends Expression
+class ClassMemberExpression extends Expression implements RequiresImports
 {
     /** @var string */
     public $name;
@@ -138,9 +139,6 @@ class ClassMemberExpression extends Expression
         $type->isCollection = self::isRelationCollection($relation->type);
         if ($relation->pivotAccessor !== null) {
             $type->pivot = $relation->pivotAccessor;
-            if (!isset($class->imports['SetRequired'])) {
-                $class->imports['SetRequired'] = ImportExpression::createSetRequiredImport();
-            }
         }
         $classMember->types = [$type];
         if ($typeScriptModelType != $class->name) {
@@ -169,12 +167,12 @@ class ClassMemberExpression extends Expression
         });
     }
 
-    public function toTypeScript(ExpressionStringGenerationOptions $options): string
+    public function toTypeScript(ExpressionStringGenerationOptions $options, GenerationContext $context): string
     {
         $content = '';
         $content .= $this->resolveKeywords($options);
         $content .= ": ";
-        $content .= $this->resolveTypeForTypeScript($options);
+        $content .= $this->resolveTypeForTypeScript($options, $context);
         if (
             !$options->useInterfaceInsteadOfClass
             && $this->initialValue != null
@@ -246,14 +244,14 @@ class ClassMemberExpression extends Expression
         return $this->types && count($this->types) === 1 && $this->types[0]->isCollection;
     }
 
-    public function resolveTypeForTypeScript(ExpressionStringGenerationOptions $options): string
+    public function resolveTypeForTypeScript(ExpressionStringGenerationOptions $options, GenerationContext $context): string
     {
         if ($this->types) {
-            return array_reduce($this->types, function (string $carry, TypeExpression $type) use ($options) {
+            return array_reduce($this->types, function (string $carry, TypeExpression $type) use ($options, $context) {
                 if ($type->name === 'undefined') {
                     return $carry;
                 }
-                return $carry . ($carry ? ' | ' : '') . $type->toTypeScript($options);
+                return $carry . ($carry ? ' | ' : '') . $type->toTypeScript($options, $context);
             }, '');
         }
         return "any";
@@ -276,5 +274,26 @@ class ClassMemberExpression extends Expression
             return false;
         }
         return true;
+    }
+
+    /**
+     * Get all imports required by this member and its types
+     * @return ImportExpression[]
+     */
+    public function getRequiredImports(GenerationContext $context): array
+    {
+        $imports = [];
+
+        if (!$this->types) {
+            return $imports;
+        }
+
+        foreach ($this->types as $type) {
+            foreach ($type->getRequiredImports($context) as $key => $import) {
+                $imports[$key] = $import;
+            }
+        }
+
+        return $imports;
     }
 }

@@ -90,7 +90,7 @@ class PivotExpression extends Expression
     /**
      * Generate the TypeScript interface definition
      */
-    public function toTypeScript(ExpressionStringGenerationOptions $options): string
+    public function toTypeScript(ExpressionStringGenerationOptions $options, GenerationContext $context): string
     {
         $content = "// Auto-generated pivot interface for table: {$this->tableName}\n";
         $content .= "export default interface {$this->interfaceName} {\n";

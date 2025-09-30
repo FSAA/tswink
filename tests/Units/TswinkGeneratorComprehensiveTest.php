@@ -61,6 +61,20 @@ class TswinkGeneratorComprehensiveTest extends TestCase
         $this->assertSnapshot($pivotContent, 'TestClassTagPivot.ts');
     }
 
+    public function testGeneratedNewTestClassSnapshot(): void
+    {
+        $this->generateFilesWithNewModels();
+        $newTestClassContent = $this->getGeneratedFileContent("/NewTestClass.ts");
+        $this->assertSnapshot($newTestClassContent, 'NewTestClass.ts');
+    }
+
+    public function testGeneratedNewTagSnapshot(): void
+    {
+        $this->generateFilesWithNewModels();
+        $newTagContent = $this->getGeneratedFileContent("/NewTag.ts");
+        $this->assertSnapshot($newTagContent, 'NewTag.ts');
+    }
+
     // ========================================
     // TARGETED UNIT TESTS - Critical Logic
     // ========================================
@@ -256,6 +270,19 @@ class TswinkGeneratorComprehensiveTest extends TestCase
         (new TswinkGenerator($this->dbConnection, true))->generate($sources, $classesDestination, $enumsDestination, $this->createExpressionOptionsFromConfig());
     }
 
+    private function generateFilesWithNewModels(): void
+    {
+        $sources = ([__DIR__ . "/Input"]);
+        $classesDestination = (__DIR__ . "/Output/Classes");
+        $enumsDestination = (__DIR__ . "/Output/Enums");
+
+        // Create options with new models enabled
+        $options = $this->createExpressionOptionsFromConfig();
+        $options->createSeparateClassForNewModels = true;
+
+        (new TswinkGenerator($this->dbConnection, true))->generate($sources, $classesDestination, $enumsDestination, $options);
+    }
+
     private function getOutputPath(string $relativePath): string
     {
         return __DIR__ . "/Output/Classes" . $relativePath;
@@ -322,6 +349,4 @@ class TswinkGeneratorComprehensiveTest extends TestCase
         }
         return trim($finalContent);
     }
-
-
 }
