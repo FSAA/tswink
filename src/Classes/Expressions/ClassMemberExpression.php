@@ -170,7 +170,7 @@ class ClassMemberExpression extends Expression implements RequiresImports
     public function toTypeScript(ExpressionStringGenerationOptions $options, GenerationContext $context): string
     {
         $content = '';
-        $content .= $this->resolveKeywords($options);
+        $content .= $this->resolveKeywords($options, $context);
         $content .= ": ";
         $content .= $this->resolveTypeForTypeScript($options, $context);
         if (
@@ -206,7 +206,7 @@ class ClassMemberExpression extends Expression implements RequiresImports
         return $result !== null ? $result : $value;
     }
 
-    private function resolveKeywords(ExpressionStringGenerationOptions $options): string
+    private function resolveKeywords(ExpressionStringGenerationOptions $options, GenerationContext $context): string
     {
         $content = '';
         if (!$options->useInterfaceInsteadOfClass) {
@@ -219,11 +219,11 @@ class ClassMemberExpression extends Expression implements RequiresImports
             $content .= "readonly ";
         }
         $content .= $this->name;
-        $content .= $this->resolveOptionalFlag($options);
+        $content .= $this->resolveOptionalFlag($options, $context);
         return $content;
     }
 
-    private function resolveOptionalFlag(ExpressionStringGenerationOptions $options): string
+    private function resolveOptionalFlag(ExpressionStringGenerationOptions $options, GenerationContext $context): string
     {
         if ($this->accessModifiers === "const") {
             // const always have an initial value, so they cannot be optional.
@@ -233,7 +233,7 @@ class ClassMemberExpression extends Expression implements RequiresImports
             // If it's a collection type and not an interface, we don't add the optional flag because the constructor will always initialize it.
             return '';
         }
-        if ($options->forcePropertiesOptional) {
+        if ($options->forcePropertiesOptional || $context->forcePropertiesOptional) {
             return '?';
         }
         return $this->isOptional ? '?' : '';
