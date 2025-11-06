@@ -44,6 +44,33 @@ composer lint        # PHPStan static analysis
 - Expected TypeScript output in `tests/Units/Output/Classes/` and `tests/Units/Output/Enums/`
 - Snapshot testing approach comparing generated files against expected output
 
+### Snapshot Testing
+The project uses snapshot testing to verify generated TypeScript output matches expected results:
+
+**When snapshots need updating:**
+- After implementing new features that change TypeScript output
+- When intentionally modifying generation logic
+- **Only after confirming the new output is correct and intentional**
+
+**When test failures show "Generated content does not match snapshot":**
+1. **First, investigate if this indicates a bug** - Most snapshot mismatches are caused by unintended changes in code behavior
+2. **Review the diff carefully** - Compare expected vs actual output to understand what changed
+3. **Only regenerate if the changes are intentional** - Never regenerate snapshots to "fix" failing tests without understanding why they're failing
+
+**How to regenerate snapshots (only when changes are intentional):**
+```bash
+# Regenerate all snapshots (use when confident changes are correct)
+UPDATE_SNAPSHOTS=1 ./vendor/bin/phpunit
+
+# Regenerate snapshots for specific test file
+UPDATE_SNAPSHOTS=1 ./vendor/bin/phpunit tests/Units/TswinkGeneratorTest.php
+
+# After regenerating, always run tests again to verify
+composer test
+```
+
+**CRITICAL**: Snapshot regeneration should be the last step after confirming code changes are correct, not a way to make failing tests pass. Always investigate test failures first.
+
 ### Configuration-Driven Generation
 The `src/Config/tswink.php` file controls all generation aspects:
 - Output destinations for classes/enums

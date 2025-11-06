@@ -1,35 +1,29 @@
-# pangpondpon/tswink
+# TsWink
 
-Generate typescript classes from Laravel models.
+TsWink is a Laravel package that generates TypeScript interfaces and classes from Eloquent models. It integrates database schema and relationships, making it easy to keep your TypeScript types in sync with your backend models.
 
-## Installation
-Run `composer require pangpondpon/tswink` and `composer require doctrine/dbal`
 
-Note: `doctrine/dbal` is needed for read table structure to create typescript class files.
+## Running Tests
 
-If you're using Laravel 5.4 or below, add this to `providers` array inside config/app.php
-```
-TsWink\TswinkServiceProvider::class,
-```
-Publish the config using `php artisan vendor:publish` and select `TsWink\TswinkServiceProvider`.
+To run the test suite, make a .env file using the .env.example (you don't need to change the values).
+If you change the value of .env, make sure they fit with the values in phpunit.xml (or phpunit.xml.dist).
+Run these commands:
 
-Change the config to suite your project
-```php
-<?php
-
-return [
-    // Destination of typescript classes
-    'ts_classes_destination' => 'resources/assets/src/models',
-];
-
+```bash
+composer install
+docker compose up -d
+composer test
 ```
 
-## Usage
-Run this artisan command
-```
-php artisan tswink:generate
+### Snapshot Testing
+
+Tests use snapshot files to verify generated TypeScript output. If you intentionally change the generation logic, you may need to update the snapshots:
+
+- First, review any test failures to confirm the changes are correct and intentional.
+- To update all snapshots, run:
+
+```bash
+UPDATE_SNAPSHOTS=1 composer test
 ```
 
-The file will be in your selected directory in config file.
-
-![Result Example](https://image.prntscr.com/image/210BjGHFSfKTSJpL8KjZKw.png)
+Only update snapshots when you are sure the new output is correct.

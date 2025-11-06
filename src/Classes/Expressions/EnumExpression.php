@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace TsWink\Classes\Expressions;
 
 use ReflectionEnum;
+use ReflectionMethod;
 use UnitEnum;
 
 class EnumExpression extends ClassExpression
 {
+    /** @var ServiceMethodExpression[] */
+    public $serviceMethods = [];
     public static function tryParse(string $text, ?ClassExpression &$enum, ExpressionStringGenerationOptions $codeGenerationOptions): bool
     {
         $namespace = null;
@@ -31,6 +34,7 @@ class EnumExpression extends ClassExpression
         $enum->baseClassName = 'Enum';
 
         self::processClassMembers($enum);
+        self::processServiceMethods($enum);
 
         return true;
     }
@@ -51,5 +55,38 @@ class EnumExpression extends ClassExpression
                 $enum->members[$classMember->name] = $classMember;
             }
         }
+    }
+
+    private static function processServiceMethods(EnumExpression $enum): void
+    {
+        /** @var class-string<UnitEnum> */
+        $className = $enum->fullyQualifiedClassName();
+        $reflectionEnum = new ReflectionEnum($className);
+
+        foreach ($reflectionEnum->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_STATIC) as $method) {
+            $serviceMethod = ServiceMethodExpression::fromReflectionMethod($method, $enum->name);
+            if ($serviceMethod) {
+                $enum->serviceMethods[] = $serviceMethod;
+            }
+        }
+    }
+
+    public function generateServiceObject(ExpressionStringGenerationOptions $options): string
+    {
+        if (empty($this->serviceMethods)) {
+            return '';
+        }
+
+        $serviceContent = "export const {$this->name}Service = {\n";
+        $methodsContent = '';
+
+        foreach ($this->serviceMethods as $serviceMethod) {
+            $methodsContent .= $serviceMethod->toTypeScript($options, new GenerationContext()) . ",\n";
+        }
+
+        $serviceContent .= $this->indent(trim($methodsContent, "\n"), 1, $options) . "\n";
+        $serviceContent .= "}\n";
+
+        return $serviceContent;
     }
 }

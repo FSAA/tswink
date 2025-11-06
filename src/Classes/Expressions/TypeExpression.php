@@ -80,7 +80,7 @@ class TypeExpression extends Expression implements RequiresImports
             }
             return implode(' | ', $types);
         }
-        if (!$returnType instanceof \ReflectionNamedType) {
+        if (!$returnType instanceof ReflectionNamedType) {
             return '';
         }
         return $returnType->getName();
@@ -115,8 +115,10 @@ class TypeExpression extends Expression implements RequiresImports
     {
         switch (get_class($reflectionType)) {
             case Array_::class:
+                /** @var Array_ $reflectionType */
                 return [self::convertDocumentorArrayToTypescriptType($reflectionType, $classImports)];
             case ArrayShape::class:
+                /** @var ArrayShape $reflectionType */
                 return [self::convertDocumentorArrayShapeToTypescriptType($reflectionType, $classImports)];
             default:
                 return self::convertPhpToTypescriptType((string) $reflectionType, $classImports);

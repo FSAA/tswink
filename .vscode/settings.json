@@ -1,0 +1,11 @@
+{
+    "phpstan.enabled": true,
+    "cSpell.words": [
+        "Documentor",
+        "pgdata",
+        "pgsql",
+        "phpunit",
+        "tswink"
+    ],
+    "php.version": "8.2"
+}

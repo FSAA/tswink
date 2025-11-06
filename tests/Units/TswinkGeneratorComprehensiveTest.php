@@ -75,6 +75,27 @@ class TswinkGeneratorComprehensiveTest extends TestCase
         $this->assertSnapshot($newTagContent, 'NewTag.ts');
     }
 
+    public function testGeneratedTestEnumSnapshot(): void
+    {
+        $this->generateFiles();
+        $testEnumContent = $this->getGeneratedEnumFileContent("/TestEnum.ts");
+        $this->assertSnapshot($testEnumContent, 'TestEnum.ts');
+    }
+
+    public function testGeneratedPhpNativeEnumSnapshot(): void
+    {
+        $this->generateFiles();
+        $phpNativeEnumContent = $this->getGeneratedEnumFileContent("/PhpNativeEnum.ts");
+        $this->assertSnapshot($phpNativeEnumContent, 'PhpNativeEnum.ts');
+    }
+
+    public function testGeneratedPermissionsEnumSnapshot(): void
+    {
+        $this->generateFiles();
+        $permissionsContent = $this->getGeneratedEnumFileContent("/Permissions.ts");
+        $this->assertSnapshot($permissionsContent, 'Permissions.ts');
+    }
+
     // ========================================
     // TARGETED UNIT TESTS - Critical Logic
     // ========================================
@@ -288,10 +309,22 @@ class TswinkGeneratorComprehensiveTest extends TestCase
         return __DIR__ . "/Output/Classes" . $relativePath;
     }
 
+    private function getEnumOutputPath(string $relativePath): string
+    {
+        return __DIR__ . "/Output/Enums" . $relativePath;
+    }
+
     private function getGeneratedFileContent(string $relativePath): string
     {
         $content = file_get_contents($this->getOutputPath($relativePath));
         $this->assertNotFalse($content, "Failed to read file: " . $relativePath);
+        return $content;
+    }
+
+    private function getGeneratedEnumFileContent(string $relativePath): string
+    {
+        $content = file_get_contents($this->getEnumOutputPath($relativePath));
+        $this->assertNotFalse($content, "Failed to read enum file: " . $relativePath);
         return $content;
     }
 

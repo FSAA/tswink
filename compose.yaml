@@ -8,8 +8,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_USER: ${DB_USERNAME}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
 
 volumes:
   pgdata:
