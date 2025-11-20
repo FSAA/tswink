@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -160,6 +161,7 @@ class ClassMemberExpression extends Expression implements RequiresImports
             HasManyThrough::class,
             BelongsToMany::class,
             MorphToMany::class,
+            MorphMany::class,
         ];
 
         return !!Arr::first($collectionRelations, function ($collectionRelation) use ($relationType) {
