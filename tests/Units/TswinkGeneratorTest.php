@@ -86,7 +86,7 @@ class TswinkGeneratorTest extends TestCase
         $this->assertStringContainsString("deepStringArray?: Array<Array<string>>;", $testClassContent);
 
         // Test PHPDoc properties - complex array shapes (interfaces don't have public keyword)
-        $this->assertStringContainsString("associativeArray?: { stringProperty: string, numberProperty: number, complexProperty: { key: string }, subArray: { [key: string]: string } };", $testClassContent);
+        $this->assertStringContainsString("associativeArray?: { stringProperty: string; numberProperty: number; complexProperty: { key: string }; subArray: { [key: string]: string } };", $testClassContent);
         $this->assertStringContainsString("complexArray?: { [key: number]: { foo: boolean } };", $testClassContent);
 
         // Test count accessors

@@ -151,10 +151,11 @@ class TypeExpression extends Expression implements RequiresImports
         $shape = '{ ';
         foreach ($arrayShape->getItems() as $item) {
             $key = $item->getKey();
+            $optional = $item->isOptional() ? '?' : '';
             $value = self::parseDecoratorType($item->getValue(), $classImports);
-            $shape .= $key . ': ' . implode(' | ', $value) . ', ';
+            $shape .= $key . $optional . ': ' . implode(' | ', $value) . '; ';
         }
-        $shape = rtrim($shape, ', ') . ' }';
+        $shape = rtrim($shape, '; ') . ' }';
         return $shape;
     }
 

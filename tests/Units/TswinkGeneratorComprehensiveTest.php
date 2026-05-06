@@ -134,7 +134,7 @@ class TswinkGeneratorComprehensiveTest extends TestCase
         $this->assertStringContainsString("anyArray?: Array<any>;", $testClassContent);
 
         // Test array shapes
-        $this->assertStringContainsString("associativeArray?: { stringProperty: string, numberProperty: number", $testClassContent);
+        $this->assertStringContainsString("associativeArray?: { stringProperty: string; numberProperty: number", $testClassContent);
         $this->assertStringContainsString("complexArray?: { [key: number]: { foo: boolean } };", $testClassContent);
     }
 

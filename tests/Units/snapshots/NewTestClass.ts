@@ -10,7 +10,7 @@ import TestImport from "./TestImport"
 export default interface NewTestClass extends BaseModel {
     anyArray?: Array<any>;
     assignment?: TestClassTagPivot;
-    associativeArray?: { stringProperty: string, numberProperty: number, complexProperty: { key: string }, subArray: { [key: string]: string } };
+    associativeArray?: { stringProperty: string; numberProperty: number; complexProperty: { key: string }; subArray: { [key: string]: string } };
     complexArray?: { [key: number]: { foo: boolean } };
     created_at?: string;
     deepStringArray?: Array<Array<string>>;
