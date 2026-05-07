@@ -14,6 +14,7 @@ export default interface NewTestClass extends BaseModel {
     complexArray?: { [key: number]: { foo: boolean } };
     created_at?: string;
     deepStringArray?: Array<Array<string>>;
+    docOnlyReturnType?: string;
     id?: number;
     name?: string;
     nullable_student2_count?: number;

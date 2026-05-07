@@ -7,6 +7,9 @@ use Illuminate\Support\Str;
 use phpDocumentor\Reflection\DocBlock\Tags\Property;
 use phpDocumentor\Reflection\DocBlock\Tags\PropertyRead;
 use phpDocumentor\Reflection\DocBlock\Tags\PropertyWrite;
+use phpDocumentor\Reflection\DocBlock\Tags\Return_;
+use phpDocumentor\Reflection\DocBlockFactory;
+use phpDocumentor\Reflection\Types\ContextFactory;
 use phpDocumentor\Reflection\PseudoTypes\ArrayShape;
 use phpDocumentor\Reflection\Type;
 use phpDocumentor\Reflection\Types\Array_;
@@ -42,8 +45,35 @@ class TypeExpression extends Expression implements RequiresImports
      */
     public static function fromReflectionMethod(ReflectionMethod $method): array
     {
+        $returnTypeName = self::getReturnTypeName($method->getReturnType());
+
+        // If no PHP return type is declared, fall back to the @return PHPDoc tag.
+        if ($returnTypeName === '' && $method->getDocComment()) {
+            try {
+                $contextFactory = new ContextFactory();
+                $context = $contextFactory->createFromReflector($method->getDeclaringClass());
+                $docBlock = DocBlockFactory::createInstance()->create($method->getDocComment(), $context);
+                $returnTags = $docBlock->getTagsWithTypeByName('return');
+                if (!empty($returnTags) && $returnTags[0] instanceof Return_) {
+                    $docType = $returnTags[0]->getType();
+                    if ($docType) {
+                        $types = [];
+                        foreach (self::parseDecoratorType($docType, []) as $typeName) {
+                            $type = new TypeExpression();
+                            $type->name = $typeName;
+                            $type->isCollection = false;
+                            $types[] = $type;
+                        }
+                        return $types;
+                    }
+                }
+            } catch (\Throwable) {
+                // Ignore parsing errors and fall through to 'any'.
+            }
+        }
+
         $types = [];
-        foreach (self::convertPhpToTypescriptType(self::getReturnTypeName($method->getReturnType())) as $typeName) {
+        foreach (self::convertPhpToTypescriptType($returnTypeName) as $typeName) {
             $type = new TypeExpression();
             $type->name = $typeName;
             $type->isCollection = false;

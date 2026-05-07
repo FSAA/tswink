@@ -77,4 +77,12 @@ class TestClass extends Model
     {
         return 0;
     }
+
+    /**
+     * @return string
+     */
+    public function getDocOnlyReturnTypeAttribute()
+    {
+        return "";
+    }
 }

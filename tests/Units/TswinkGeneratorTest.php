@@ -103,6 +103,10 @@ class TswinkGeneratorTest extends TestCase
         $this->assertStringContainsString("tesAnyAccessor?: any;", $testClassContent);
         $this->assertStringContainsString("stringOrIntAccessor?: string | number;", $testClassContent);
 
+        // Accessor with no PHP return type but a @return PHPDoc tag should use the PHPDoc type,
+        // not fall back to 'any'.
+        $this->assertStringContainsString("docOnlyReturnType?: string;", $testClassContent);
+
         // Test database columns
         $this->assertStringContainsString("id?: number;", $testClassContent);
         $this->assertStringContainsString("name?: string;", $testClassContent);
