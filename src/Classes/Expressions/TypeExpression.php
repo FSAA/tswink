@@ -131,7 +131,12 @@ class TypeExpression extends Expression implements RequiresImports
         foreach (self::parseDecoratorType($reflectionType, $classImports) as $typeName) {
             $type = new TypeExpression();
             $type->name = $typeName;
-            $type->forceIsPrimitive = true;
+            // Structural/generic types (containing {, [, <, >, |, etc.) cannot be imported and
+            // must be treated as primitive so that no spurious import is generated for them.
+            // Simple identifiers (class names, primitive names) should NOT be forced primitive:
+            // class names resolved via import-matching need to generate imports (especially in
+            // the New-model context where class->imports is cleared and rebuilt).
+            $type->forceIsPrimitive = !preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $typeName);
             $types[] = $type;
         }
         return $types;

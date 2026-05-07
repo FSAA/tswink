@@ -139,6 +139,14 @@ class TswinkGeneratorTest extends TestCase
         $this->assertStringContainsString("import type Tag from './Tag'", $testClassContent);
         $this->assertStringContainsString("import type TestClassTagPivot from './TestClassTagPivot'", $testClassContent);
 
+        // Test New model: when a @property PHPDoc overwrites a relation type, the New model must
+        // still import the New-prefixed variant of the related type. TestClass has @property User $user
+        // alongside the user() relation. Without the fix, the PHPDoc-overwritten type had
+        // forceIsPrimitive=true, silencing import generation in the new model so NewUser was missing.
+        $newTestClassContent = file_get_contents($classesDestination . "/NewTestClass.ts");
+        $this->assertNotFalse($newTestClassContent, "Failed to read NewTestClass file");
+        $this->assertStringContainsString("import type NewUser from './NewUser'", $newTestClassContent);
+
         // Interfaces don't have constructors - skip constructor tests
 
         // Test non-auto-generated sections
