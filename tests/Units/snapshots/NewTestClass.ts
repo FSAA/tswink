@@ -18,6 +18,7 @@ export default interface NewTestClass extends BaseModel {
     name?: string;
     nullable_student2_count?: number;
     nullable_student_count?: number;
+    php_doc_user_count?: NewUser;
     stringArray?: Array<string>;
     stringOrIntAccessor?: string | number;
     student_count?: number;

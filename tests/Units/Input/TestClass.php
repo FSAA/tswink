@@ -22,6 +22,8 @@ use Illuminate\Foundation\Auth\User;
  * @property-read int|null $nullable_student_count
  * @property-read ?int $nullable_student2_count
  * @property-read object|null $test_nullable_any_count
+ * @property User $user
+ * @property User $php_doc_user_count
  * @phpstan-ignore missingType.iterableValue
  */
 class TestClass extends Model

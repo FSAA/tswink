@@ -115,6 +115,15 @@ class TswinkGeneratorTest extends TestCase
         $this->assertStringContainsString("user?: User;", $testClassContent);
         $this->assertStringContainsString("students?: User[];", $testClassContent);
 
+        // Test @property tags with a class that has no matching TS import should not overwrite
+        // an existing relation type with 'any'. TestClass has @property User $user alongside the
+        // user() relation; without the fix it would produce 'user?: any;'.
+        $this->assertStringNotContainsString("user?: any;", $testClassContent);
+
+        // Test @property tags whose type phpDocumentor resolves to a FQCN (e.g. \User) should
+        // still match the short-name import 'User' via FQCN short-name extraction.
+        $this->assertStringContainsString("php_doc_user_count?: User;", $testClassContent);
+
         // Test imports (type imports for interfaces)
         $this->assertStringContainsString("import type { SetRequired } from '@universite-laval/script-components'", $testClassContent);
         $this->assertStringContainsString("import type BaseModel from './BaseModel'", $testClassContent);

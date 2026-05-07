@@ -247,7 +247,13 @@ class ClassExpression extends Expression
             }
             return;
         }
-        $member->types = TypeExpression::fromPropertyDecorator($propertyTag, $this->imports);
+        $resolvedTypes = TypeExpression::fromPropertyDecorator($propertyTag, $this->imports);
+        // If all resolved types are 'any', the type couldn't be inferred (e.g. an unknown PHP class).
+        // In that case, keep the existing type rather than overwriting it with 'any'.
+        if ($resolvedTypes !== null && count(array_filter($resolvedTypes, fn($t) => $t->name !== 'any')) === 0) {
+            return;
+        }
+        $member->types = $resolvedTypes;
     }
 
     private function processTswinkPropertyTag(Generic $tswinkPropertyTag): void

@@ -220,7 +220,12 @@ class TypeExpression extends Expression implements RequiresImports
             if (!$classImports) {
                 return null;
             }
-            $matchingImport = Arr::first($classImports, fn (ImportExpression $import) => $import->name === $phpTypes);
+            // phpDocumentor prefixes resolved types with a leading backslash (e.g. \User or \App\Models\User).
+            // Strip the leading backslash and also extract the short class name so both
+            // \User and \Illuminate\Foundation\Auth\User can match an import named 'User'.
+            $cleanType = ltrim($phpTypes, '\\');
+            $shortName = str_contains($cleanType, '\\') ? substr($cleanType, strrpos($cleanType, '\\') + 1) : $cleanType;
+            $matchingImport = Arr::first($classImports, fn (ImportExpression $import) => $import->name === $cleanType || $import->name === $shortName);
             if ($matchingImport) {
                 return $matchingImport->name;
             }
