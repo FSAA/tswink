@@ -469,6 +469,10 @@ class ClassExpression extends Expression
         // Collect imports from all members
         foreach ($this->members as $member) {
             foreach ($member->getRequiredImports($context) as $key => $import) {
+                // Skip self-imports — a class/interface must not import itself.
+                if ($import->name === $this->name) {
+                    continue;
+                }
                 $allImports[$key] = $import;
             }
         }

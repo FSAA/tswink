@@ -4,6 +4,7 @@ namespace TsWinkTests\Units\Input;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Tag extends Model
@@ -18,5 +19,13 @@ class Tag extends Model
         return $this->belongsToMany(TestClass::class, 'test_class_tag')
             ->withPivot(['priority', 'assigned_at'])
             ->as('assignment');
+    }
+
+    /**
+     * @return HasMany<Tag,$this>
+     */
+    public function relatedTags(): HasMany
+    {
+        return $this->hasMany(Tag::class, 'parent_id');
     }
 }

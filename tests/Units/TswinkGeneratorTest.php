@@ -70,6 +70,10 @@ class TswinkGeneratorTest extends TestCase
         $this->assertStringContainsString("import type TestClassTagPivot from './TestClassTagPivot'", $tagContent);
         $this->assertStringContainsString("test_classes?: SetRequired<TestClass, 'assignment'>[]", $tagContent);
 
+        // Self-referential relation (relatedTags HasMany Tag): Tag must not import itself.
+        $this->assertStringContainsString("related_tags?: Tag[];", $tagContent);
+        $this->assertStringNotContainsString("import type Tag from './Tag'", $tagContent);
+
         // Test that TestClass also has the pivot property (bidirectional)
         $this->assertStringContainsString("assignment?: SetRequired<TestClassTagPivot, 'priority'>", $testClassContent);
 

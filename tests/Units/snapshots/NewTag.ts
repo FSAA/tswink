@@ -1,5 +1,6 @@
 import type BaseModel from './BaseModel'
 import type TestClassTagPivot from './TestClassTagPivot'
+import type Tag from './Tag'
 import type NewTestClass from './NewTestClass'
 
 // <non-auto-generated-import-declarations>
@@ -11,6 +12,7 @@ export default interface NewTag extends BaseModel {
     created_at?: string;
     id?: number;
     name?: string;
+    related_tags?: Tag[];
     test_classes?: NewTestClass[];
     updated_at?: string;
 

@@ -12,6 +12,7 @@ export default interface Tag extends BaseModel {
     created_at?: string;
     id?: number;
     name?: string;
+    related_tags?: Tag[];
     test_classes?: SetRequired<TestClass, 'assignment'>[];
     updated_at?: string;
 
