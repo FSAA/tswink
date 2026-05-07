@@ -49,7 +49,7 @@ export default interface NewTestClass extends BaseModel {
 
 export const NewTestClassConstants = {
     TEST_CONST: 45.6,
-    TEST_CONST_ARRAY: ['test',123,true],
+    TEST_CONST_ARRAY: ['test', 123, true],
     TEST_CONST_STRING: 'test',
     phpQualifiedClassName: 'TsWinkTests\\Units\\Input\\TestClass',
 }

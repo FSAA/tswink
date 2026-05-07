@@ -147,7 +147,7 @@ class TswinkGeneratorComprehensiveTest extends TestCase
         $this->assertStringContainsString("export const TestClassConstants = {", $testClassContent);
         $this->assertStringContainsString("TEST_CONST: 45.6,", $testClassContent);
         $this->assertStringContainsString("TEST_CONST_STRING: 'test',", $testClassContent);
-        $this->assertStringContainsString("TEST_CONST_ARRAY: ['test',123,true],", $testClassContent);
+        $this->assertStringContainsString("TEST_CONST_ARRAY: ['test', 123, true],", $testClassContent);
         $this->assertStringContainsString("phpQualifiedClassName: 'TsWinkTests\\\\Units\\\\Input\\\\TestClass',", $testClassContent);
     }
 

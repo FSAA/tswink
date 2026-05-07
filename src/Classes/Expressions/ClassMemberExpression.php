@@ -205,7 +205,17 @@ class ClassMemberExpression extends Expression implements RequiresImports
             return "'" . $escapedValue . "'";
         }, $value);
 
-        return $result !== null ? $result : $value;
+        if ($result === null) {
+            return $value;
+        }
+
+        // Add a space after commas that are outside of strings (i.e. between array/object elements)
+        $result = preg_replace_callback('/\'[^\'\\\\]*(?:\\\\.[^\'\\\\]*)*\'|,/', function ($matches) {
+            // If the match is a quoted string, leave it untouched; otherwise add a space after the comma
+            return $matches[0] === ',' ? ', ' : $matches[0];
+        }, $result);
+
+        return $result ?? $value;
     }
 
     private function resolveKeywords(ExpressionStringGenerationOptions $options, GenerationContext $context): string
